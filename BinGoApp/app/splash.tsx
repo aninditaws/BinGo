@@ -1,0 +1,52 @@
+import * as React from "react";
+import { Image, StyleSheet, Text, View, Pressable } from "react-native";
+import { router } from "expo-router";
+
+const Splash = () => {
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      router.replace("/signup");
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <View style={styles.splash}>
+      <View style={styles.logoContainer}>
+        <Image 
+          style={styles.logoIcon} 
+          resizeMode="contain" 
+          source={require("../assets/images/icon.png")} 
+        />
+        <Text style={styles.bingo}>BinGo</Text>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  splash: {
+    flex: 1,
+    backgroundColor: "#fcfdfb",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logoContainer: {
+    alignItems: "center",
+    gap: 20,
+  },
+  logoIcon: {
+    width: 120,
+    height: 120,
+  },
+  bingo: {
+    fontSize: 48,
+    lineHeight: 58,
+    fontWeight: "700",
+    fontFamily: "Nunito-Bold",
+    color: "#5b913b",
+    textAlign: "center",
+  },
+});
+
+export default Splash; 
