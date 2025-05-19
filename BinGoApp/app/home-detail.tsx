@@ -1,5 +1,5 @@
 import * as React from "react";
-import {ScrollView, StyleSheet, Text, View, Pressable, Image} from "react-native";
+import {ScrollView, StyleSheet, Text, View, Pressable, Image, TextInput} from "react-native";
 import ChevronRight from "../assets/icons/chevron-right.svg"
 import Pencil from "../assets/icons/pencil.svg"
 import MapPin from "../assets/icons/map-pin-gray.svg"
@@ -8,7 +8,7 @@ import LabBottlePlastic from "../assets/icons/plastic-bottle.svg"
 import Danger from "../assets/icons/danger.svg"
 import Bell from "../assets/icons/bell.svg"
 import Settings from "../assets/icons/settings.svg"
-import HomeIcon from "../assets/icons/house-dark.svg"
+import HomeIcon from "../assets/icons/house-light.svg"
 import SearchIcon from "../assets/icons/search-light.svg"
 import UserNavbar from "../assets/icons/user-light.svg"
 import { Gap, Color, FontSize, FontFamily, Border, Padding } from "../GlobalStyles";
@@ -16,6 +16,8 @@ import { useRouter } from "expo-router";
 
 const Detail = () => {
   const router = useRouter();
+  const [isEditingTitle, setIsEditingTitle] = React.useState(false);
+  const [binTitle, setBinTitle] = React.useState("Tempat Sampah KOICA #1");
   
   return (
     <ScrollView style={styles.detail}>
@@ -23,10 +25,24 @@ const Detail = () => {
         <View style={[styles.frameGroup, styles.topbarFlexBox]}>
           <View style={styles.frameContainer}>
             <View style={styles.lucidechevronRightParent}>
-              <ChevronRight style={styles.lucidechevronRightIcon} width={24} height={24} />
-              <Text style={[styles.tempatSampahKoica, styles.statusClr]}>Tempat Sampah KOICA #1</Text>
+              <Pressable onPress={() => router.back()}>
+                <ChevronRight style={styles.lucidechevronRightIcon} width={24} height={24} />
+              </Pressable>
+              {isEditingTitle ? (
+                <TextInput
+                  style={[styles.tempatSampahKoica, styles.statusClr, { flex: 1, borderBottomWidth: 1, borderColor: Color.grayscaleBorder }]}
+                  value={binTitle}
+                  onChangeText={setBinTitle}
+                  autoFocus
+                  onBlur={() => setIsEditingTitle(false)}
+                />
+              ) : (
+                <Text style={[styles.tempatSampahKoica, styles.statusClr]}>{binTitle}</Text>
+              )}
             </View>
-            <Pencil style={[styles.lucidepencilIcon, styles.badgeIconLayout]} width={16} height={16} />
+            <Pressable onPress={() => setIsEditingTitle(true)}>
+              <Pencil style={[styles.lucidepencilIcon, styles.badgeIconLayout]} width={16} height={16} />
+            </Pressable>
           </View>
           <View style={styles.lucidemapPinParent}>
             <MapPin style={styles.lucidemapPinIcon} width={14} height={14} />
@@ -41,42 +57,38 @@ const Detail = () => {
               <Text style={[styles.penuh, styles.penuhLayout]}>Penuh</Text>
             </View>
           </View>
-          <View style={[styles.frameChild, styles.frameBorder]} />
-          <View style={styles.frameView}>
-            <View style={styles.frameParentFlexBox1}>
-              <View style={[styles.frameParent3, styles.frameParent3FlexBox, { backgroundColor: 'transparent' }]}>
-                <View style={styles.frameContainer}>
-                  <OrganicOutline style={styles.mdiorganicOutlineIcon} width={15} height={15} />
-                  <Text style={[styles.organik, styles.organikLayout]}>Organik</Text>
-                </View>
+          <View style={styles.frameChild} />
+          <View style={styles.statusListContainer}>
+            <View style={[styles.statusRow, { backgroundColor: 'transparent' }]}>
+              <View style={styles.statusLabelContent}>
+                <OrganicOutline style={styles.mdiorganicOutlineIcon} width={15} height={15} />
+                <Text style={[styles.statusLabelText, { color: Color.grayscaleBlack }]}>Organik</Text>
               </View>
-              <View style={styles.status1}>
+              <View style={styles.statusValueContent}>
                 <View style={[styles.statusDot, { backgroundColor: Color.approvalApproval700 }]} />
-                <Text style={[styles.penuh, styles.penuhLayout, { color: Color.grayscaleBlack }]}>Kosong</Text>
+                <Text style={[styles.statusValueText, { color: Color.grayscaleBlack }]}>Kosong</Text>
               </View>
             </View>
-            <View style={[styles.frameParent4, styles.frameParentFlexBox1, { backgroundColor: 'transparent' }]}>
-              <View style={[styles.frameParent5, styles.frameParent5FlexBox, { backgroundColor: 'transparent' }]}>
-                <View style={styles.frameContainer}>
-                  <LabBottlePlastic width={15} height={15} />
-                  <Text style={[styles.anorganik, styles.penuh1Typo]}>Anorganik</Text>
-                </View>
+
+            <View style={[styles.statusRow, { backgroundColor: "#FEF2F2" }]}>
+              <View style={styles.statusLabelContent}>
+                <LabBottlePlastic width={15} height={15} />
+                <Text style={[styles.statusLabelText, { color: Color.errorDanger500 }]}>Anorganik</Text>
               </View>
-              <View style={styles.status1}>
+              <View style={styles.statusValueContent}>
                 <View style={[styles.statusDot, { backgroundColor: Color.errorDanger500 }]} />
-                <Text style={[styles.penuh1, styles.penuh1Typo, { color: "#d51a52" }]}>Penuh</Text>
+                <Text style={[styles.statusValueText, { color: "#d51a52" }]}>Penuh</Text>
               </View>
             </View>
-            <View style={styles.frameParentFlexBox1}>
-              <View style={[styles.frameParent7, styles.frameParent7FlexBox, { backgroundColor: 'transparent' }]}>
-                <View style={styles.frameContainer}>
-                  <Danger style={styles.makidangerIcon} width={13} height={13} />
-                  <Text style={[styles.organik, styles.organikLayout]}>B3</Text>
-                </View>
+
+            <View style={[styles.statusRow, { backgroundColor: 'transparent' }]}>
+              <View style={styles.statusLabelContent}>
+                <Danger style={styles.makidangerIcon} width={13} height={13} />
+                <Text style={[styles.statusLabelText, { color: Color.grayscaleBlack }]}>B3</Text>
               </View>
-              <View style={styles.status1}>
+              <View style={styles.statusValueContent}>
                 <View style={[styles.statusDot, { backgroundColor: Color.primaryPrimary500 }]} />
-                <Text style={[styles.penuh, styles.penuhLayout, { color: Color.grayscaleBlack }]}>Kosong</Text>
+                <Text style={[styles.statusValueText, { color: Color.grayscaleBlack }]}>Kosong</Text>
               </View>
             </View>
           </View>
@@ -284,7 +296,7 @@ const styles = StyleSheet.create({
     overflow: "hidden"
   },
   koica: {
-    color: Color.grayscaleBorder,
+    color: Color.grayscaleBlack,
     textAlign: "justify",
     fontFamily: FontFamily.poppinsRegular
   },
@@ -300,7 +312,7 @@ const styles = StyleSheet.create({
     flexDirection: "row"
   },
   frameChild: {
-    width: 393,
+    width: 340,
     height: 2,
     borderTopWidth: 2,
     borderColor: Color.colorBeige_100,
@@ -382,11 +394,12 @@ const styles = StyleSheet.create({
     marginRight: Gap.gap_xs
   },
   frameParent: {
-    top: 85,
+    top: 100,
     left: 16,
-    gap: 48,
-    width: 361,
-    position: "absolute"
+    right: 16,
+    gap: 24,
+    position: "absolute",
+    paddingBottom: 110
   },
   binGoLogo: {
     width: 28,
@@ -450,6 +463,7 @@ const styles = StyleSheet.create({
     overflow: "hidden"
   },
   cariParent: {
+    width: 32,
     zIndex: 2,
     height: 54
   },
@@ -465,12 +479,13 @@ const styles = StyleSheet.create({
     width: "100%"
   },
   lucideuserParent: {
+    width: 32,
     zIndex: 3,
     height: 54
   },
   navbar1: {
     marginTop: -47,
-    backgroundColor: Color.primaryPrimary500,
+    backgroundColor: "#5b913b",
     paddingHorizontal: 64,
     paddingVertical: 20,
     left: "0%",
@@ -484,7 +499,9 @@ const styles = StyleSheet.create({
   navbar: {
     top: 750,
     height: 94,
-    position: "absolute"
+    position: "absolute",
+    width: 393,
+    left: 0
   },
   detail: {
     borderColor: Color.grayscaleBorder,
@@ -499,7 +516,7 @@ const styles = StyleSheet.create({
   navbarChild: {
     top: 11,
     left: 43,
-    backgroundColor: Color.primaryPrimary500,
+    backgroundColor: "#5b913b",
     width: 92,
     height: 72,
     borderRadius: 12,
@@ -513,9 +530,9 @@ const styles = StyleSheet.create({
   },
   maskGroupParent: {
     marginTop: -25,
-    width: "100.51%",
-    right: "-0.26%",
-    left: "-0.26%",
+    width: "100%",
+    right: "0%",
+    left: "0%",
     borderRadius: Border.br_7xs,
     borderColor: Color.colorGainsboro,
     paddingHorizontal: Padding.p_sm,
@@ -529,10 +546,11 @@ const styles = StyleSheet.create({
   },
   userCards: {
     height: 51,
-    width: 392
+    width: 340
   },
   userCardsParent: {
-    gap: Gap.gap_sm
+    gap: Gap.gap_sm,
+    width: 340
   },
   pengurus: {
     textAlign: "left",
@@ -601,6 +619,41 @@ const styles = StyleSheet.create({
   },
   makidangerIcon: {
     overflow: "hidden"
+  },
+  statusListContainer: {
+    gap: Gap.gap_sm
+  },
+  statusRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Padding.p_sm,
+    paddingHorizontal: Padding.p_xs,
+    borderRadius: Border.br_xs,
+    borderWidth: 1.5,
+    borderColor: Color.colorGainsboro,
+    marginBottom: Gap.gap_xs,
+    width: 340
+  },
+  statusLabelContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Gap.gap_sm
+  },
+  statusLabelText: {
+    lineHeight: 17,
+    fontSize: FontSize.size_sm,
+    fontFamily: FontFamily.poppinsRegular
+  },
+  statusValueContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Gap.gap_sm
+  },
+  statusValueText: {
+    lineHeight: 14,
+    fontSize: FontSize.size_xs,
+    fontFamily: FontFamily.poppinsRegular
   }
 });
 
