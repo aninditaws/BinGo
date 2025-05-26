@@ -1,5 +1,5 @@
 import * as React from "react";
-import {ScrollView, Text, StyleSheet, View, Pressable, Modal} from "react-native";
+import {ScrollView, Text, StyleSheet, View, Pressable, Modal, Dimensions, Platform} from "react-native";
 import ChevronRight from "../assets/icons/chevron-right.svg"
 import Cookie from "../assets/icons/cookie.svg"
 import Handshake from "../assets/icons/handshake.svg"
@@ -15,17 +15,34 @@ const Settings = () => {
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
   const [showLogoutModal, setShowLogoutModal] = React.useState(false);
   
+  // Dynamic positioning similar to search page
+  const dynamicStyles = StyleSheet.create({
+    frameParent: {
+      ...styles.frameParent,
+      top: Platform.OS === 'web' ? 135 : 155, // Adjust content position to match topbar
+    },
+    topbar: {
+      ...styles.topbar,
+      paddingTop: Platform.OS === 'web' ? 45 : 60, // Responsive padding like other pages
+      paddingBottom: Platform.OS === 'web' ? 15 : 20,
+    },
+    chevronIcon: {
+      width: 28, // Make back icon bigger like search page
+      height: 28,
+    }
+  });
+  
   return (
     <View style={styles.container}>
       <ScrollView style={[styles.settings, styles.borderBorder]} contentContainerStyle={styles.scrollViewContent}>
-        <View style={styles.topbar}>
+        <View style={[dynamicStyles.topbar, styles.topbarLayout]}>
           <Pressable style={styles.brandName} onPress={() => router.push("/home")}>
-            <ChevronRight style={styles.chevronRight} width={22} height={22} />
+            <ChevronRight style={dynamicStyles.chevronIcon} width={28} height={28} />
             <Text style={styles.title}>Pengaturan</Text>
           </Pressable>
         </View>
 
-        <View style={styles.frameParent}>
+        <View style={dynamicStyles.frameParent}>
           <View style={styles.settingsCardsParent}>
             <View style={[styles.settingsCards, styles.settingsLayout]}>
               <View style={styles.iconParent}>
@@ -87,7 +104,7 @@ const Settings = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.grayscaleWhite
+    backgroundColor: "#fcfdfb"
   },
   scrollViewContent: {
     flexGrow: 1,
@@ -97,78 +114,97 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderStyle: "solid"
   },
+  topbarLayout: {
+    width: "100%",
+    left: 0
+  },
   settingsLayout: {
-    paddingVertical: Padding.p_sm,
-    paddingHorizontal: Padding.p_xl,
-    height: 56,
+    paddingVertical: 18,
+    paddingHorizontal: 16,
+    minHeight: 64,
     borderBottomWidth: 1,
-    borderColor: Color.colorGainsboro,
+    borderColor: "#e5e0eb",
     alignItems: "center",
     flexDirection: "row",
-    width: 440,
+    width: "100%",
     borderStyle: "solid",
-    backgroundColor: Color.grayscaleWhite
+    backgroundColor: "#fcfdfb"
   },
   textTypo: {
-    width: 321,
+    flex: 1,
     textAlign: "left",
-    fontFamily: FontFamily.poppinsRegular,
+    fontFamily: "Poppins-Regular",
     lineHeight: 20,
-    fontSize: FontSize.size_sm
+    fontSize: 15
   },
   icon: {
     overflow: "hidden"
   },
   kebijakanKeamanan: {
-    color: Color.grayscaleHintText
+    color: "#1a141f"
   },
   iconParent: {
-    width: 351,
-    gap: Gap.gap_md,
+    flex: 1,
+    gap: 16,
     alignItems: "center",
     flexDirection: "row"
   },
   settingsCards: {
-    borderTopWidth: 1
+    borderTopWidth: 1,
+    borderColor: "#e5e0eb"
   },
   hapusAkun: {
-    color: Color.errorDanger500
+    color: "#d51a52",
+    fontWeight: "500"
   },
   settingsCardsParent: {
-    width: 440
+    width: "100%",
+    borderRadius: 8,
+    backgroundColor: "#fcfdfb",
+    shadowColor: "rgba(0, 0, 0, 0.08)",
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowRadius: 4,
+    elevation: 2,
+    shadowOpacity: 1,
+    overflow: "hidden",
+    marginHorizontal: 16
   },
   copyrightContainer: {
     width: "100%",
-    paddingVertical: 20,
-    alignItems: "center"
+    paddingVertical: 32,
+    alignItems: "center",
+    backgroundColor: "transparent"
   },
   copyright: {
     fontSize: 12,
     fontFamily: "Poppins-Regular",
-    color: "#1e3014",
+    color: "#aba7af",
     textAlign: "center"
   },
   frameParent: {
-    width: 440,
-    flex: 1
-  },
-  chevronRight: {
-    overflow: "hidden"
+    width: "100%",
+    flex: 1,
+    position: "absolute",
+    left: 0,
+    right: 0,
+    paddingBottom: 100
   },
   title: {
     fontSize: 22,
     lineHeight: 26,
-    fontFamily: FontFamily.nunitoSemiBold,
-    color: Color.grayscaleBlack,
+    fontFamily: "Nunito-SemiBold",
+    color: "#1e3014",
     textAlign: "center",
     fontWeight: "600"
   },
   brandName: {
-    width: 313,
     alignItems: "center",
-    zIndex: 1,
     gap: 8,
-    flexDirection: "row"
+    flexDirection: "row",
+    flex: 1
   },
   topbar: {
     shadowColor: "rgba(0, 0, 0, 0.25)",
@@ -179,24 +215,28 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
     shadowOpacity: 1,
+    paddingHorizontal: 16,
     paddingTop: 24,
-    paddingBottom: Padding.p_sm,
-    gap: Gap.gap_0,
-    justifyContent: "space-between",
+    paddingBottom: 18,
+    width: "100%",
+    left: 0,
+    top: 0,
+    position: "absolute",
+    backgroundColor: "#fcfdfb",
     flexDirection: "row",
-    width: 440,
-    paddingHorizontal: Padding.p_xl,
-    alignItems: "center",
-    backgroundColor: Color.grayscaleWhite
+    justifyContent: "space-between",
+    alignItems: "center"
   },
   settings: {
-    borderRadius: 12,
-    borderColor: Color.grayscaleBorder,
-    flex: 1,
     maxWidth: "100%",
     width: "100%",
-    backgroundColor: Color.grayscaleWhite,
-    borderStyle: "solid"
+    flex: 1,
+    borderColor: "#aba7af",
+    backgroundColor: "#fcfdfb",
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0
   },
   modalOverlay: {
     flex: 1,

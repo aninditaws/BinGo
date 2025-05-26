@@ -1,10 +1,21 @@
 import * as React from "react";
-import { ScrollView, Image, StyleSheet, Text, View, Pressable, TextInput, Dimensions, Platform, Alert } from "react-native";
+import {
+  ScrollView,
+  Image,
+  StyleSheet,
+  Text,
+  View,
+  Pressable,
+  TextInput,
+  Dimensions,
+  Platform,
+  Alert,
+} from "react-native";
 import { router } from "expo-router";
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from "@expo/vector-icons";
 
-const { width, height } = Dimensions.get('window');
-const isWeb = Platform.OS === 'web';
+const { width, height } = Dimensions.get("window");
+const isWeb = Platform.OS === "web";
 
 const Signup = () => {
   const [fullName, setFullName] = React.useState("");
@@ -17,12 +28,12 @@ const Signup = () => {
 
   const handleSignup = async () => {
     if (!fullName || !email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Semua field harus diisi');
+      Alert.alert("Error", "Semua field harus diisi");
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Password dan konfirmasi password harus sama');
+      Alert.alert("Error", "Password dan konfirmasi password harus sama");
       return;
     }
 
@@ -31,7 +42,7 @@ const Signup = () => {
       // For now, just navigate to home page
       router.replace("/home");
     } catch (error: any) {
-      Alert.alert('Error', error.message);
+      Alert.alert("Error", error.message);
     } finally {
       setLoading(false);
     }
@@ -40,28 +51,28 @@ const Signup = () => {
   const handleGoogleSignup = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+        provider: "google",
       });
 
       if (error) throw error;
     } catch (error: any) {
-      Alert.alert('Error', error.message);
+      Alert.alert("Error", error.message);
     }
   };
 
   return (
     <View style={styles.container}>
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.contentContainer}>
           <View style={styles.brandName}>
-            <Image 
-              style={styles.k031Deliverable2Ppt1Icon} 
-              resizeMode="cover" 
-              source={require("../assets/images/icon.png")} 
+            <Image
+              style={styles.k031Deliverable2Ppt1Icon}
+              resizeMode="cover"
+              source={require("../assets/images/icon.png")}
             />
             <Text style={styles.bingo}>BinGo</Text>
           </View>
@@ -90,7 +101,9 @@ const Signup = () => {
                     autoCapitalize="none"
                   />
                 </Pressable>
-                <Pressable style={[styles.inputdropdown2, styles.inputdropdownBorder]}>
+                <Pressable
+                  style={[styles.inputdropdown2, styles.inputdropdownBorder]}
+                >
                   <TextInput
                     style={[styles.text, styles.textTypo]}
                     placeholder="Kata Sandi"
@@ -99,18 +112,20 @@ const Signup = () => {
                     onChangeText={setPassword}
                     secureTextEntry={!showPassword}
                   />
-                  <Pressable 
+                  <Pressable
                     style={styles.inputIcon}
                     onPress={() => setShowPassword(!showPassword)}
                   >
-                    <Ionicons 
-                      name={showPassword ? "eye-off" : "eye"} 
-                      size={20} 
-                      color="#aba7af" 
+                    <Ionicons
+                      name={showPassword ? "eye-off" : "eye"}
+                      size={18}
+                      color="#aba7af"
                     />
                   </Pressable>
                 </Pressable>
-                <Pressable style={[styles.inputdropdown2, styles.inputdropdownBorder]}>
+                <Pressable
+                  style={[styles.inputdropdown2, styles.inputdropdownBorder]}
+                >
                   <TextInput
                     style={[styles.text, styles.textTypo]}
                     placeholder="Konfirmasi Kata Sandi"
@@ -119,26 +134,26 @@ const Signup = () => {
                     onChangeText={setConfirmPassword}
                     secureTextEntry={!showConfirmPassword}
                   />
-                  <Pressable 
+                  <Pressable
                     style={styles.inputIcon}
                     onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
-                    <Ionicons 
-                      name={showConfirmPassword ? "eye-off" : "eye"} 
-                      size={20} 
-                      color="#aba7af" 
+                    <Ionicons
+                      name={showConfirmPassword ? "eye-off" : "eye"}
+                      size={20}
+                      color="#aba7af"
                     />
                   </Pressable>
                 </Pressable>
               </View>
 
-              <Pressable 
+              <Pressable
                 style={[styles.button, styles.parentFlexBox]}
                 onPress={handleSignup}
                 disabled={loading}
               >
                 <Text style={[styles.button1, styles.button1Layout]}>
-                  {loading ? 'Loading...' : 'Daftar'}
+                  {loading ? "Loading..." : "Daftar"}
                 </Text>
               </Pressable>
 
@@ -150,20 +165,34 @@ const Signup = () => {
 
               <Pressable onPress={() => router.push("/login")}>
                 <Text style={[styles.text5, styles.atauTypo]}>
-                  <Text style={styles.denganMendaftarAnda}>{`Sudah punya akun? `}</Text>
+                  <Text
+                    style={styles.denganMendaftarAnda}
+                  >{`Sudah punya akun? `}</Text>
                   <Text style={styles.syaratDanKetentuan}>Masuk</Text>
                 </Text>
               </Pressable>
 
-              <Pressable 
-                style={styles.btnGoogleLightWrapper} 
+              <Pressable
+                style={styles.btnGoogleLightWrapper}
                 onPress={handleGoogleSignup}
                 disabled={loading}
               >
-                <View style={[styles.btnGoogleLight, styles.btnGoogleLightLayout]}>
-                  <View style={[styles.officialButtonsSignInWit, styles.btnGoogleLightLayout]}>
+                <View
+                  style={[styles.btnGoogleLight, styles.btnGoogleLightLayout]}
+                >
+                  <View
+                    style={[
+                      styles.officialButtonsSignInWit,
+                      styles.btnGoogleLightLayout,
+                    ]}
+                  >
                     <Ionicons name="logo-google" size={25} color="#1f1f1f" />
-                    <Text style={[styles.masukMenggunakanGoogle, styles.button1Layout]}>
+                    <Text
+                      style={[
+                        styles.masukMenggunakanGoogle,
+                        styles.button1Layout,
+                      ]}
+                    >
                       Daftar menggunakan Google
                     </Text>
                   </View>
@@ -187,14 +216,14 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     minHeight: height,
   },
   contentContainer: {
     paddingHorizontal: 24,
     width: isWeb ? 390 : width,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   parentFlexBox: {
     alignItems: "center",
@@ -360,4 +389,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Signup; 
+export default Signup;

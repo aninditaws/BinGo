@@ -1,5 +1,5 @@
 import * as React from "react";
-import {ScrollView, Image, StyleSheet, Text, View, Pressable} from "react-native";
+import {ScrollView, Image, StyleSheet, Text, View, Pressable, Dimensions, Platform} from "react-native";
 import MapPin from "../assets/icons/map-pin-pink.svg"
 import MapPinLight from "../assets/icons/map-pin-gray.svg"
 import Search from "../assets/icons/search-dark.svg"
@@ -12,10 +12,41 @@ import { useRouter } from "expo-router";
 
 const Home = () => {
   const router = useRouter();
+  const { height: screenHeight } = Dimensions.get('window');
+
+  // Dynamic positioning to fix layout issues
+  const { width: screenWidth } = Dimensions.get('window');
+  
+  const dynamicStyles = StyleSheet.create({
+    navbar: {
+      ...styles.navbar,
+      top: screenHeight - 94, // Position navbar at bottom of screen
+    },
+    frameParent: {
+      ...styles.frameParent,
+      top: Platform.OS === 'web' ? 135 : 155, // Adjust content position to match even smaller topbar
+      paddingBottom: Platform.OS === 'ios' ? 120 : 100, // Add bottom padding to prevent overlap
+    },
+    navbarChild: {
+      ...styles.navbarChild,
+      left: Platform.OS === 'web' 
+        ? 43  // Original perfect web positioning
+        : Math.round((screenWidth - 92) / 3) - 40, // Mobile responsive positioning
+    },
+    topbar: {
+      ...styles.topbar,
+      paddingTop: Platform.OS === 'web' ? 45 : 60, // Further reduced padding for even smaller topbar
+      paddingBottom: Platform.OS === 'web' ? 15 : 20, // Further reduced bottom padding
+    },
+    logoIcon: {
+      width: 36, // Make logo bigger
+      height: 36,
+    }
+  });
 
   return (
     <ScrollView style={[styles.home, styles.homeBorder]}>
-      <View style={styles.frameParent}>
+      <View style={dynamicStyles.frameParent}>
         <View style={[styles.userProfileParent, styles.topbarFlexBox]}>
           <Pressable style={styles.userProfile} onPress={()=>{}}>
             <View style={styles.profileIconContainer}>
@@ -28,9 +59,7 @@ const Home = () => {
           </Pressable>
           <View style={styles.mapPinParent}>
             <MapPinLight style={styles.mapPinIcon} width={14} height={14} />
-            <View style={styles.locationDropdown}>
-              <Text style={[styles.loca, styles.textTypo]}>KOICA</Text>
-            </View>
+            <Text style={[styles.loca, styles.textTypo]}>KOICA</Text>
           </View>
         </View>
         <View style={[styles.inputdropdown, styles.frameGroupBorder]}>
@@ -107,9 +136,9 @@ const Home = () => {
           <View style={[styles.bottomSpaceChild, styles.badge1Position]} />
         </View>
       </View>
-      <View style={[styles.topbar, styles.topbarLayout]}>
+      <View style={[dynamicStyles.topbar, styles.topbarLayout]}>
         <View style={styles.brandName}>
-          <Image style={styles.k031Deliverable2Ppt1Icon} resizeMode="cover" source={require("../assets/images/icon.png")} />
+          <Image style={dynamicStyles.logoIcon} resizeMode="cover" source={require("../assets/images/icon.png")} />
           <Text style={[styles.bingo, styles.bingoTypo]}>BinGo</Text>
         </View>
         <View style={styles.bellParent}>
@@ -121,9 +150,9 @@ const Home = () => {
           </Pressable>
         </View>
       </View>
-      <View style={[styles.navbar, styles.topbarLayout]}>
+      <View style={[dynamicStyles.navbar, styles.topbarLayout]}>
         <View style={[styles.navbar1, styles.timePosition]}>
-          <View style={[styles.navbarChild, styles.statusBarPosition]} />
+          <View style={[dynamicStyles.navbarChild, styles.statusBarPosition]} />
           <View style={styles.homeParent}>
             <HomeIcon style={styles.homeIcon} width={36} height={36} />
             <Text style={styles.beranda}>Beranda</Text>
@@ -194,7 +223,7 @@ const styles = StyleSheet.create({
     position: "absolute"
   },
   topbarLayout: {
-    width: 393,
+    width: "100%",
     left: 0
   },
   cariTypo: {
@@ -241,12 +270,12 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     color: "#1a141f",
     fontSize: 14,
-    flex: 1
+    textAlign: "left"
   },
   locationDropdown: {
     flexDirection: "row",
-    alignSelf: "stretch",
-    flex: 1
+    alignItems: "center",
+    justifyContent: "flex-end"
   },
   mapPinParent: {
     gap: 4,
@@ -346,9 +375,9 @@ const styles = StyleSheet.create({
   frameGroup: {
     top: -1,
     left: -1,
+    right: -1,
     borderRadius: 6,
     borderColor: "#e2e2e2",
-    width: 361,
     paddingHorizontal: 18,
     paddingVertical: 12,
     borderWidth: 1,
@@ -358,7 +387,7 @@ const styles = StyleSheet.create({
   },
   binCards: {
     height: 62,
-    width: 361
+    width: "100%"
   },
   tempatSampahMuParent: {
     gap: 12,
@@ -366,21 +395,20 @@ const styles = StyleSheet.create({
     marginBottom: 20
   },
   bottomSpace: {
-    width: 361,
+    width: "100%",
     height: 94,
     position: "relative"
   },
   bottomSpaceChild: {
     backgroundColor: "#fcfdfb",
-    width: 361,
+    width: "100%",
     height: 94,
     left: 0,
     top: 0
   },
   frameParent: {
-    top: 90,
     left: 16,
-    width: 361,
+    right: 16,
     gap: 20,
     alignItems: "center",
     position: "absolute"
@@ -393,19 +421,15 @@ const styles = StyleSheet.create({
     color: "#5b913b"
   },
   brandName: {
-    width: 313,
     alignItems: "center",
-    zIndex: 1,
     gap: 8,
-    flexDirection: "row"
+    flexDirection: "row",
+    flex: 1
   },
   bellParent: {
-    zIndex: 2,
     gap: 18,
     flexDirection: "row",
-    alignItems: "center",
-    position: "absolute",
-    right: 16
+    alignItems: "center"
   },
   bellIcon: {
     overflow: "hidden"
@@ -450,11 +474,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 24,
     paddingBottom: 18,
-    width: 393,
+    width: "100%",
     left: 0,
     top: 0,
     position: "absolute",
-    backgroundColor: "#fcfdfb"
+    backgroundColor: "#fcfdfb",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center"
   },
   navbarChild: {
     top: 11,
@@ -521,7 +548,10 @@ const styles = StyleSheet.create({
     width: "100%",
     flex: 1,
     backgroundColor: "#fcfdfb",
-    borderRadius: 12
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0
   },
   beranda: {
     lineHeight: 14,

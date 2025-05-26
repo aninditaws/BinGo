@@ -1,5 +1,5 @@
 import * as React from "react";
-import {ScrollView, Text, StyleSheet, View, Image, Pressable} from "react-native";
+import {ScrollView, Text, StyleSheet, View, Pressable, Dimensions, Platform} from "react-native";
 import ChevronRight from "../assets/icons/chevron-right.svg"
 import User from "../assets/icons/user-pink.svg"
 import { Gap, Padding, Color, FontSize, FontFamily } from "../GlobalStyles";
@@ -8,9 +8,26 @@ import { useRouter } from "expo-router";
 const Notification = () => {
   const router = useRouter();
   
+  // Dynamic positioning similar to search page
+  const dynamicStyles = StyleSheet.create({
+    frameParent: {
+      ...styles.frameParent,
+      top: Platform.OS === 'web' ? 135 : 155, // Adjust content position to match topbar
+    },
+    topbar: {
+      ...styles.topbar,
+      paddingTop: Platform.OS === 'web' ? 45 : 60, // Responsive padding like other pages
+      paddingBottom: Platform.OS === 'web' ? 15 : 20,
+    },
+    chevronIcon: {
+      width: 28, // Make back icon bigger like search page
+      height: 28,
+    }
+  });
+  
   return (
     <ScrollView style={[styles.notification, styles.borderBorder]}>
-      <View style={styles.frameParent}>
+      <View style={dynamicStyles.frameParent}>
         <View style={styles.senin19Mei2025Parent}>
           <Text style={styles.senin19Mei}>Senin, 19 Mei 2025</Text>
           <View style={styles.notificationCardsParent}>
@@ -89,13 +106,11 @@ const Notification = () => {
           </View>
         </View>
       </View>
-      <View style={styles.topbar}>
-        <View style={styles.brandName}>
-          <Pressable onPress={() => router.back()}>
-            <ChevronRight style={styles.chevronRight} width={22} height={22} />
-          </Pressable>
+      <View style={[dynamicStyles.topbar, styles.topbarLayout]}>
+        <Pressable style={styles.brandName} onPress={() => router.push("/home")}>
+          <ChevronRight style={dynamicStyles.chevronIcon} width={28} height={28} />
           <Text style={styles.title}>Notifikasi</Text>
-        </View>
+        </Pressable>
       </View>
     </ScrollView>
   );
@@ -106,116 +121,132 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderStyle: "solid"
   },
+  topbarLayout: {
+    width: "100%",
+    left: 0
+  },
   notificationFlexBox: {
     gap: Gap.gap_0,
     justifyContent: "space-between",
-    paddingVertical: Padding.p_sm,
+    paddingVertical: 16,
     flexDirection: "row",
-    height: 70,
+    minHeight: 80,
     borderBottomWidth: 1,
-    borderColor: Color.colorGainsboro,
-    width: 440,
-    paddingHorizontal: Padding.p_xl,
+    borderColor: "#e5e0eb",
+    width: "100%",
+    paddingHorizontal: 16,
     alignItems: "center",
     borderStyle: "solid",
-    backgroundColor: Color.grayscaleWhite
+    backgroundColor: "#fcfdfb"
   },
   senin19Mei: {
-    fontSize: FontSize.size_sm,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 20,
     textAlign: "left",
-    color: Color.grayscaleBorder,
-    fontFamily: FontFamily.poppinsRegular,
-    alignSelf: "stretch"
+    color: "#1e3014",
+    fontFamily: "Poppins-SemiBold",
+    fontWeight: "600",
+    alignSelf: "stretch",
+    marginBottom: 8
   },
   lucideuserIcon: {
     overflow: "hidden"
   },
   tempatSampahKoica: {
-    fontFamily: FontFamily.poppinsRegular,
-    color: Color.primaryPrimary500,
+    fontFamily: "Poppins-SemiBold",
+    color: "#1e3014",
     fontWeight: "600"
   },
   sudahHampirPenuh1: {
-    color: Color.grayscaleHintText
+    color: "#1a141f"
   },
   sudahHampirPenuh: {
-    fontFamily: FontFamily.poppinsRegular
+    fontFamily: "Poppins-Regular"
   },
   tempatSampahKoica1SudahH: {
-    fontSize: FontSize.size_sm
+    fontSize: 14,
+    lineHeight: 18
   },
   wib1: {
-    fontSize: FontSize.size_xs,
-    color: Color.grayscaleBorder
+    fontSize: 12,
+    color: "#aba7af",
+    lineHeight: 16
   },
   tempatSampahKoicaContainer: {
-    width: 321,
+    flex: 1,
     textAlign: "left"
   },
   lucideuserParent: {
-    width: 351,
-    gap: Gap.gap_lg,
+    flex: 1,
+    gap: 12,
     flexDirection: "row",
     alignItems: "center"
   },
   notificationCards: {
     borderTopWidth: 1,
+    borderColor: "#e5e0eb",
     gap: Gap.gap_0,
     justifyContent: "space-between"
   },
   notificationCardsParent: {
-    width: 440
+    width: "100%",
+    borderRadius: 8,
+    backgroundColor: "#fcfdfb",
+    shadowColor: "rgba(0, 0, 0, 0.08)",
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowRadius: 4,
+    elevation: 2,
+    shadowOpacity: 1,
+    overflow: "hidden"
   },
   senin19Mei2025Parent: {
-    justifyContent: "center",
+    justifyContent: "flex-start",
     paddingVertical: 0,
-    gap: Gap.gap_md,
-    paddingHorizontal: Padding.p_xl,
-    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 16,
+    alignItems: "flex-start",
     alignSelf: "stretch"
   },
   notificationCards2: {
-    paddingVertical: Padding.p_sm,
-    height: 70,
+    paddingVertical: 16,
+    minHeight: 80,
     borderBottomWidth: 1,
-    borderColor: Color.colorGainsboro,
+    borderColor: "#e5e0eb",
     flexDirection: "row",
     borderTopWidth: 1,
-    width: 440,
-    paddingHorizontal: Padding.p_xl,
+    width: "100%",
+    paddingHorizontal: 16,
     alignItems: "center",
     borderStyle: "solid",
-    backgroundColor: Color.grayscaleWhite
+    backgroundColor: "#fcfdfb"
   },
   frameParent: {
-    top: 94,
-    width: 441,
-    gap: 32,
     left: 0,
-    position: "absolute"
+    right: 0,
+    gap: 24,
+    position: "absolute",
+    paddingBottom: 100
   },
   notificationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Color.primaryPrimary500
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#5b913b"
   },
   brandName: {
-    width: 313,
     alignItems: "center",
-    zIndex: 1,
     gap: 8,
-    flexDirection: "row"
-  },
-  chevronRight: {
-    overflow: "hidden"
+    flexDirection: "row",
+    flex: 1
   },
   title: {
     fontSize: 22,
     lineHeight: 26,
-    fontFamily: FontFamily.nunitoSemiBold,
-    color: Color.grayscaleBlack,
+    fontFamily: "Nunito-SemiBold",
+    color: "#1e3014",
     textAlign: "center",
     fontWeight: "600"
   },
@@ -228,27 +259,28 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
     shadowOpacity: 1,
+    paddingHorizontal: 16,
     paddingTop: 24,
-    paddingBottom: Padding.p_sm,
-    top: 0,
-    gap: Gap.gap_0,
-    justifyContent: "space-between",
-    flexDirection: "row",
-    width: 440,
-    paddingHorizontal: Padding.p_xl,
-    alignItems: "center",
+    paddingBottom: 18,
+    width: "100%",
     left: 0,
+    top: 0,
     position: "absolute",
-    backgroundColor: Color.grayscaleWhite
+    backgroundColor: "#fcfdfb",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center"
   },
   notification: {
-    borderRadius: 12,
-    borderColor: Color.grayscaleBorder,
-    flex: 1,
     maxWidth: "100%",
     width: "100%",
-    backgroundColor: Color.grayscaleWhite,
-    borderStyle: "solid"
+    flex: 1,
+    borderColor: "#aba7af",
+    backgroundColor: "#fcfdfb",
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0
   }
 });
 

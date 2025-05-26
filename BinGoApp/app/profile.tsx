@@ -1,5 +1,5 @@
 import * as React from "react";
-import {ScrollView, StyleSheet, Text, View, Pressable, Image} from "react-native";
+import {ScrollView, StyleSheet, Text, View, Pressable, Image, Dimensions, Platform} from "react-native";
 import ChevronRight from "../assets/icons/chevron-right.svg"
 import User from "../assets/icons/user-pink.svg"
 import Mail from "../assets/icons/mail.svg"
@@ -13,10 +13,41 @@ import { useRouter } from "expo-router";
 
 const Profile = () => {
   const router = useRouter();
+  const { height: screenHeight } = Dimensions.get('window');
+
+  // Dynamic positioning to fix layout issues
+  const { width: screenWidth } = Dimensions.get('window');
+  
+  const dynamicStyles = StyleSheet.create({
+    navbar: {
+      ...styles.navbar,
+      top: screenHeight - 94, // Position navbar at bottom of screen
+    },
+    frameParent: {
+      ...styles.frameParent,
+      top: Platform.OS === 'web' ? 130 : 150, // Adjust content position to match even smaller topbar
+      paddingBottom: Platform.OS === 'ios' ? 120 : 100, // Add bottom padding to prevent overlap
+    },
+    navbarChild: {
+      ...styles.navbarChild,
+      left: Platform.OS === 'web'
+        ? 265  // Original perfect web positioning
+        : Math.round(((screenWidth - 92) / 3) * 2) + 56, // Mobile responsive positioning
+    },
+    topbar: {
+      ...styles.topbar,
+      paddingTop: Platform.OS === 'web' ? 45 : 60, // Further reduced padding for even smaller topbar
+      paddingBottom: Platform.OS === 'web' ? 15 : 20, // Further reduced bottom padding
+    },
+    logoIcon: {
+      width: 36, // Make logo bigger
+      height: 36,
+    }
+  });
 
   return (
     <ScrollView style={styles.profile}>
-      <View style={styles.frameParent}>
+      <View style={dynamicStyles.frameParent}>
         <View style={styles.frameGroup}>
           <Pressable style={styles.chevronRightParent} onPress={()=>{}}>
             <ChevronRight style={styles.chevronRightIcon} width={24} height={24} />
@@ -67,9 +98,9 @@ const Profile = () => {
           </Pressable>
         </View>
       </View>
-      <View style={[styles.topbar, styles.topbarLayout]}>
+      <View style={[dynamicStyles.topbar, styles.topbarLayout]}>
         <Pressable style={styles.brandName} onPress={() => router.push("/home")}>
-          <Image style={styles.binGoLogo} resizeMode="cover" source={require("../assets/images/icon.png")} />
+          <Image style={dynamicStyles.logoIcon} resizeMode="cover" source={require("../assets/images/icon.png")} />
           <Text style={[styles.bingo, styles.bingoTypo]}>BinGo</Text>
         </Pressable>
         <View style={styles.bellParent}>
@@ -81,9 +112,9 @@ const Profile = () => {
           </Pressable>
         </View>
       </View>
-      <View style={[styles.navbar, styles.topbarLayout]}>
+      <View style={[dynamicStyles.navbar, styles.topbarLayout]}>
         <View style={[styles.navbar1, styles.timePosition]}>
-          <View style={[styles.navbarChild, styles.statusBarPosition]} />
+          <View style={[dynamicStyles.navbarChild, styles.statusBarPosition]} />
           <Pressable style={styles.homeParent} onPress={() => router.push("/home")}>
             <HomeIcon style={styles.homeIcon} width={36} height={36} />
             <Text style={styles.beranda}>Beranda</Text>
@@ -141,7 +172,7 @@ const styles = StyleSheet.create({
     position: "absolute"
   },
   topbarLayout: {
-    width: 393,
+    width: "100%",
     left: 0
   },
   cariTypo: {
@@ -236,41 +267,31 @@ const styles = StyleSheet.create({
     gap: 20,
     alignSelf: "stretch",
     marginTop: 20,
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column'
+    flex: 1
   },
   frameParent: {
-    top: 85,
     left: 16,
-    width: 361,
+    right: 16,
     gap: 16,
     alignItems: "center",
-    position: "absolute",
-    bottom: 100,
-    display: 'flex',
-    flexDirection: 'column'
+    position: "absolute"
   },
   bingo: {
     color: "#5b913b"
   },
   brandName: {
-    width: 313,
     alignItems: "center",
-    zIndex: 1,
     gap: 8,
-    flexDirection: "row"
+    flexDirection: "row",
+    flex: 1
   },
   bellIcon: {
     overflow: "hidden"
   },
   bellParent: {
-    zIndex: 2,
     gap: 18,
     flexDirection: "row",
-    alignItems: "center",
-    position: "absolute",
-    right: 16
+    alignItems: "center"
   },
   topbar: {
     shadowColor: "rgba(0, 0, 0, 0.25)",
@@ -284,15 +305,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 24,
     paddingBottom: 18,
-    width: 393,
+    width: "100%",
     left: 0,
     top: 0,
     position: "absolute",
-    backgroundColor: "#fcfdfb"
+    backgroundColor: "#fcfdfb",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center"
   },
   navbarChild: {
     top: 11,
-    left: 265,
+    left: 245,
     backgroundColor: "#76a35c",
     width: 92,
     height: 72,
@@ -375,7 +399,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderStyle: "solid",
     backgroundColor: "#fcfdfb",
-    borderRadius: 12
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0
   },
   binGoLogo: {
     width: 28,

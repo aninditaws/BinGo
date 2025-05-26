@@ -1,5 +1,5 @@
 import * as React from "react";
-import {ScrollView, Text, StyleSheet, View, Pressable, TextInput} from "react-native";
+import {ScrollView, Text, StyleSheet, View, Pressable, TextInput, Dimensions, Platform} from "react-native";
 import SearchIcon from "../assets/icons/search-dark.svg"
 import MapPin from "../assets/icons/map-pin-pink.svg"
 import ChevronRight from "../assets/icons/chevron-right.svg"
@@ -10,10 +10,41 @@ import { useRouter } from "expo-router";
 const Search = () => {
   const [searchText, setSearchText] = React.useState("");
   const router = useRouter();
+  const { height: screenHeight } = Dimensions.get('window');
+
+  // Dynamic positioning to fix layout issues
+  const { width: screenWidth } = Dimensions.get('window');
+  
+  const dynamicStyles = StyleSheet.create({
+    navbar: {
+      ...styles.navbar,
+      top: screenHeight - 94, // Position navbar at bottom of screen
+    },
+    inputdropdownParent: {
+      ...styles.inputdropdownParent,
+      top: Platform.OS === 'web' ? 135 : 155, // Adjust content position to match topbar
+      paddingBottom: Platform.OS === 'ios' ? 120 : 100, // Add bottom padding to prevent overlap
+    },
+    navbarChild: {
+      ...styles.navbarChild,
+      left: Platform.OS === 'web'
+        ? 160  // Original perfect web positioning
+        : Math.round((screenWidth - 92) / 3) + 55, // Mobile responsive positioning
+    },
+    topbar: {
+      ...styles.topbar,
+      paddingTop: Platform.OS === 'web' ? 45 : 60, // Further reduced padding for even smaller topbar
+      paddingBottom: Platform.OS === 'web' ? 15 : 20, // Further reduced bottom padding
+    },
+    chevronIcon: {
+      width: 28, // Make back icon bigger
+      height: 28,
+    }
+  });
 
   return (
     <ScrollView style={[styles.searchNotFilled, styles.borderBorder]}>
-      <View style={styles.inputdropdownParent}>
+      <View style={dynamicStyles.inputdropdownParent}>
         <View style={[styles.inputdropdown, styles.inputdropdownFlexBox]}>
           <View style={styles.inputdropdownTxt}>
             <TextInput
@@ -94,15 +125,15 @@ const Search = () => {
           </View>
         </View>
       </View>
-      <View style={[styles.topbar, styles.topbarLayout]}>
+      <View style={[dynamicStyles.topbar, styles.topbarLayout]}>
         <Pressable style={styles.brandName} onPress={() => router.push("/home")}>
-          <ChevronRight style={styles.chevronRightIcon} width={22} height={22} />
+          <ChevronRight style={dynamicStyles.chevronIcon} width={28} height={28} />
           <Text style={[styles.title, styles.titleTypo]}>Cari</Text>
         </Pressable>
       </View>
-      <View style={[styles.navbar, styles.topbarLayout]}>
+      <View style={[dynamicStyles.navbar, styles.topbarLayout]}>
         <View style={[styles.navbar1, styles.timePosition]}>
-          <View style={[styles.navbarChild, styles.statusBarPosition]} />
+          <View style={[dynamicStyles.navbarChild, styles.statusBarPosition]} />
           <Pressable style={styles.homeParent} onPress={() => router.push("/home")}>
             <HomeIcon style={styles.homeIcon} width={36} height={36} />
             <Text style={styles.beranda}>Beranda</Text>
@@ -159,7 +190,7 @@ const styles = StyleSheet.create({
     position: "absolute"
   },
   topbarLayout: {
-    width: 393,
+    width: "100%",
     left: 0
   },
   titleTypo: {
@@ -286,9 +317,9 @@ const styles = StyleSheet.create({
   frameGroup: {
     top: -1,
     left: -1,
+    right: -1,
     borderRadius: 6,
     borderColor: "#e2e2e2",
-    width: 361,
     paddingHorizontal: 18,
     paddingVertical: 12,
     borderWidth: 1,
@@ -298,17 +329,16 @@ const styles = StyleSheet.create({
   },
   binCards: {
     height: 62,
-    width: 361
+    width: "100%"
   },
   frameParent: {
     gap: 14,
     alignSelf: "stretch"
   },
   inputdropdownParent: {
-    top: 90,
     left: 16,
+    right: 16,
     gap: 18,
-    width: 361,
     position: "absolute"
   },
   title: {
@@ -318,11 +348,10 @@ const styles = StyleSheet.create({
     color: "#1e3014"
   },
   brandName: {
-    width: 313,
     alignItems: "center",
-    zIndex: 1,
     gap: 8,
-    flexDirection: "row"
+    flexDirection: "row",
+    flex: 1
   },
   topbar: {
     shadowColor: "rgba(0, 0, 0, 0.25)",
@@ -336,15 +365,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 24,
     paddingBottom: 18,
-    width: 393,
+    width: "100%",
     left: 0,
     top: 0,
     position: "absolute",
-    backgroundColor: "#fcfdfb"
+    backgroundColor: "#fcfdfb",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center"
   },
   navbarChild: {
     top: 11,
-    left: 160,
+    left: 140,
     backgroundColor: "#76a35c",
     width: 92,
     height: 72,
@@ -420,7 +452,10 @@ const styles = StyleSheet.create({
     flex: 1,
     borderColor: "#aba7af",
     backgroundColor: "#fcfdfb",
-    borderRadius: 12
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0
   },
   chevronRightIcon: {
     marginRight: 8

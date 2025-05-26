@@ -1,5 +1,5 @@
 import * as React from "react";
-import {ScrollView, StyleSheet, Text, View, Pressable, Image, TextInput} from "react-native";
+import {ScrollView, StyleSheet, Text, View, Pressable, Image, TextInput, Dimensions, Platform} from "react-native";
 import ChevronRight from "../assets/icons/chevron-right.svg"
 import Pencil from "../assets/icons/pencil.svg"
 import MapPin from "../assets/icons/map-pin-gray.svg"
@@ -8,7 +8,7 @@ import LabBottlePlastic from "../assets/icons/plastic-bottle.svg"
 import Danger from "../assets/icons/danger.svg"
 import Bell from "../assets/icons/bell.svg"
 import Settings from "../assets/icons/settings.svg"
-import HomeIcon from "../assets/icons/house-light.svg"
+import HomeIcon from "../assets/icons/house-dark.svg"
 import SearchIcon from "../assets/icons/search-light.svg"
 import UserNavbar from "../assets/icons/user-light.svg"
 import { Gap, Color, FontSize, FontFamily, Border, Padding } from "../GlobalStyles";
@@ -18,10 +18,41 @@ const Detail = () => {
   const router = useRouter();
   const [isEditingTitle, setIsEditingTitle] = React.useState(false);
   const [binTitle, setBinTitle] = React.useState("Tempat Sampah KOICA #1");
+  const { height: screenHeight } = Dimensions.get('window');
+
+  // Dynamic positioning to fix layout issues
+  const { width: screenWidth } = Dimensions.get('window');
+  
+  const dynamicStyles = StyleSheet.create({
+    navbar: {
+      ...styles.navbar,
+      top: screenHeight - 94, // Position navbar at bottom of screen
+    },
+    frameParent: {
+      ...styles.frameParent,
+      top: Platform.OS === 'web' ? 145 : 165, // Adjust content position to match even smaller topbar
+      paddingBottom: Platform.OS === 'ios' ? 120 : 100, // Add bottom padding to prevent overlap
+    },
+    navbarChild: {
+      ...styles.navbarChild,
+      left: Platform.OS === 'web' 
+        ? 43  // Original perfect web positioning
+        : Math.round((screenWidth - 92) / 3) - 40, // Mobile responsive positioning
+    },
+    topbar: {
+      ...styles.topbar,
+      paddingTop: Platform.OS === 'web' ? 45 : 60, // Further reduced padding for even smaller topbar
+      paddingBottom: Platform.OS === 'web' ? 15 : 20, // Further reduced bottom padding
+    },
+    logoIcon: {
+      width: 36, // Make logo bigger
+      height: 36,
+    }
+  });
   
   return (
     <ScrollView style={styles.detail}>
-      <View style={styles.frameParent}>
+      <View style={dynamicStyles.frameParent}>
         <View style={[styles.frameGroup, styles.topbarFlexBox]}>
           <View style={styles.frameContainer}>
             <View style={styles.lucidechevronRightParent}>
@@ -111,9 +142,9 @@ const Detail = () => {
           </View>
         </View>
       </View>
-      <View style={[styles.topbar, styles.topbarLayout]}>
+      <View style={[dynamicStyles.topbar, styles.topbarLayout]}>
         <Pressable style={styles.brandName} onPress={() => router.push("/home")}>
-          <Image style={styles.binGoLogo} resizeMode="cover" source={require("../assets/images/icon.png")} />
+          <Image style={dynamicStyles.logoIcon} resizeMode="cover" source={require("../assets/images/icon.png")} />
           <Text style={[styles.bingo, styles.bingoTypo]}>BinGo</Text>
         </Pressable>
         <View style={styles.bellParent}>
@@ -125,13 +156,13 @@ const Detail = () => {
           </Pressable>
         </View>
       </View>
-      <View style={[styles.navbar, styles.topbarLayout]}>
+      <View style={[dynamicStyles.navbar, styles.topbarLayout]}>
         <View style={[styles.navbar1, styles.textPosition]}>
-          <View style={[styles.navbarChild, styles.statusBarPosition]} />
-          <View style={styles.lucidehouseParent}>
+          <View style={[dynamicStyles.navbarChild, styles.statusBarPosition]} />
+          <Pressable style={styles.lucidehouseParent} onPress={() => router.push("/home")}>
             <HomeIcon style={styles.lucidehouseIcon} width={36} height={36} />
             <Text style={[styles.beranda, styles.textClr]}>Beranda</Text>
-          </View>
+          </Pressable>
           <Pressable style={[styles.cariParent, styles.parentLayout]} onPress={() => router.push("/search")}>
             <Text style={[styles.cari, styles.cariTypo]}>Cari</Text>
             <SearchIcon style={[styles.lucidesearchIcon, styles.iconPosition]} width={32} height={32} />
@@ -255,7 +286,7 @@ const styles = StyleSheet.create({
     position: "absolute"
   },
   topbarLayout: {
-    width: 393,
+    width: "100%",
     left: 0
   },
   statusBarPosition: {
@@ -312,7 +343,7 @@ const styles = StyleSheet.create({
     flexDirection: "row"
   },
   frameChild: {
-    width: 340,
+    width: "100%",
     height: 2,
     borderTopWidth: 2,
     borderColor: Color.colorBeige_100,
@@ -381,11 +412,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 24,
     paddingBottom: 18,
-    width: 393,
+    width: "100%",
     left: 0,
     top: 0,
     position: "absolute",
-    backgroundColor: "#fcfdfb"
+    backgroundColor: "#fcfdfb",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center"
   },
   statusDot: {
     width: 8,
@@ -394,7 +428,6 @@ const styles = StyleSheet.create({
     marginRight: Gap.gap_xs
   },
   frameParent: {
-    top: 100,
     left: 16,
     right: 16,
     gap: 24,
@@ -413,22 +446,18 @@ const styles = StyleSheet.create({
     fontWeight: "600"
   },
   brandName: {
-    width: 313,
     alignItems: "center",
-    zIndex: 1,
     gap: 8,
-    flexDirection: "row"
+    flexDirection: "row",
+    flex: 1
   },
   bellIcon: {
     overflow: "hidden"
   },
   bellParent: {
-    zIndex: 2,
     gap: 18,
     flexDirection: "row",
-    alignItems: "center",
-    position: "absolute",
-    right: 16
+    alignItems: "center"
   },
   notificationBadgeText: {
     color: Color.grayscaleWhite,
@@ -500,7 +529,7 @@ const styles = StyleSheet.create({
     top: 750,
     height: 94,
     position: "absolute",
-    width: 393,
+    width: "100%",
     left: 0
   },
   detail: {
@@ -511,12 +540,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderStyle: "solid",
     backgroundColor: Color.grayscaleWhite,
-    borderRadius: Border.br_xs
+    borderTopLeftRadius: Border.br_xs,
+    borderTopRightRadius: Border.br_xs,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0
   },
   navbarChild: {
     top: 11,
     left: 43,
-    backgroundColor: "#5b913b",
+    backgroundColor: "#76a35c",
     width: 92,
     height: 72,
     borderRadius: 12,
@@ -534,23 +566,20 @@ const styles = StyleSheet.create({
     right: "0%",
     left: "0%",
     borderRadius: Border.br_7xs,
-    borderColor: Color.colorGainsboro,
     paddingHorizontal: Padding.p_sm,
     gap: Gap.gap_xl,
     paddingVertical: Padding.p_5xs,
     alignItems: "center",
     flexDirection: "row",
-    borderWidth: 1,
-    borderStyle: "solid",
     backgroundColor: Color.grayscaleWhite
   },
   userCards: {
     height: 51,
-    width: 340
+    width: "100%"
   },
   userCardsParent: {
     gap: Gap.gap_sm,
-    width: 340
+    width: "100%"
   },
   pengurus: {
     textAlign: "left",
@@ -627,13 +656,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: Padding.p_sm,
-    paddingHorizontal: Padding.p_xs,
-    borderRadius: Border.br_xs,
-    borderWidth: 1.5,
-    borderColor: Color.colorGainsboro,
-    marginBottom: Gap.gap_xs,
-    width: 340
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    marginBottom: 8,
+    width: "100%"
   },
   statusLabelContent: {
     flexDirection: 'row',
