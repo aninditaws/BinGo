@@ -167,7 +167,9 @@ class ApiService {
   }
 
   async getProfile(): Promise<ApiResponse> {
-    return this.makeRequest("/auth/profile");
+    return this.makeRequest("/auth/profile", {
+      method: "GET",
+    });
   }
 
   async updateProfile(profileData: {

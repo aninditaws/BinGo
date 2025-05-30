@@ -110,29 +110,8 @@ class AuthController {
       try {
         profile = await authService.getUserProfile(user.id);
       } catch (profileError) {
-        console.log(
-          "Profile not found, creating new profile for user:",
-          user.id
-        );
-
-        // Create profile if it doesn't exist
-        try {
-          const newProfileData = {
-            full_name:
-              user.user_metadata?.full_name || user.user_metadata?.display_name,
-            display_name:
-              user.user_metadata?.full_name || user.user_metadata?.display_name,
-            email: user.email,
-          };
-
-          await authService.upsertUserProfile(user.id, newProfileData);
-
-          // Try to get the profile again
-          profile = await authService.getUserProfile(user.id);
-        } catch (createError) {
-          console.error("Failed to create profile:", createError);
-          // Continue with null profile
-        }
+        console.log("Profile not found for user:", user.id);
+        // Profile will remain null
       }
 
       res.status(200).json({
@@ -211,13 +190,9 @@ class AuthController {
         user: {
           id: user.id,
           email: user.email,
-          email_confirmed_at: user.email_confirmed_at,
           created_at: user.created_at,
           updated_at: user.updated_at,
           full_name: full_name,
-          display_name: display_name,
-          first_name,
-          last_name,
         },
         profile: profile,
       });
