@@ -46,22 +46,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            email_confirmed: false
+          }
         },
       });
 
       if (error) {
-        return { error };
+        console.error('Signup error:', error);
+        return { error, data: null };
       }
 
       if (data?.user) {
-        // Setelah signup berhasil, kita perlu menyimpan user ke dalam state
         setUser(data.user);
-        return { data: data.user };
+        return { data: { user: data.user }, error: null };
       }
 
-      return { error: new Error('Gagal mendaftar') };
+      return { error: new Error('Gagal mendaftar'), data: null };
     } catch (error) {
-      return { error };
+      console.error('Signup exception:', error);
+      return { error: error as Error, data: null };
     }
   };
 
@@ -71,9 +75,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email,
         password,
       });
-      return { data, error };
+
+      if (error) {
+        console.error('Signin error:', error);
+        return { error, data: null };
+      }
+
+      if (data?.user) {
+        setUser(data.user);
+        setSession(data.session);
+        return { data: { user: data.user }, error: null };
+      }
+
+      return { error: new Error('Gagal login'), data: null };
     } catch (error) {
-      return { data: null, error: error as Error };
+      console.error('Signin exception:', error);
+      return { error: error as Error, data: null };
     }
   };
 
