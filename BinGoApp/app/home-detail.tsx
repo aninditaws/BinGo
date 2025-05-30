@@ -175,27 +175,7 @@ const Detail = () => {
 
   const getOverallBinStatus = () => {
     if (!bin) return "empty";
-
-    // Overall status is "full" only if ALL categories are full
-    if (
-      bin.organik_status?.toLowerCase() === "full" &&
-      bin.anorganik_status?.toLowerCase() === "full" &&
-      bin.b3_status?.toLowerCase() === "full"
-    ) {
-      return "full";
-    }
-
-    // If any category has medium, overall is medium
-    if (
-      bin.organik_status?.toLowerCase() === "medium" ||
-      bin.anorganik_status?.toLowerCase() === "medium" ||
-      bin.b3_status?.toLowerCase() === "medium"
-    ) {
-      return "medium";
-    }
-
-    // Otherwise, it's empty
-    return "empty";
+    return bin.status;
   };
 
   const getStatusRowBackground = (status: string) => {
@@ -277,64 +257,68 @@ const Detail = () => {
                 />
               </Pressable>
               {isEditingTitle ? (
-                <TextInput
-                  style={[
-                    styles.tempatSampahKoica,
-                    styles.statusClr,
-                    {
-                      flex: 1,
-                      borderBottomWidth: 1,
-                      borderColor: Color.grayscaleBorder,
-                    },
-                  ]}
-                  value={binTitle}
-                  onChangeText={setBinTitle}
-                  autoFocus
-                  onBlur={handleCancelEdit}
-                />
+                <View style={styles.editTitleContainer}>
+                  <TextInput
+                    style={[
+                      styles.tempatSampahKoica,
+                      styles.statusClr,
+                      {
+                        flex: 1,
+                        borderBottomWidth: 1,
+                        borderColor: Color.grayscaleBorder,
+                        marginBottom: 12,
+                      },
+                    ]}
+                    value={binTitle}
+                    onChangeText={setBinTitle}
+                    autoFocus
+                    onSubmitEditing={handleSaveTitle}
+                    returnKeyType="done"
+                    placeholder="Enter bin name"
+                  />
+                  <View style={styles.editButtonsRow}>
+                    <Pressable
+                      style={[styles.editButton, styles.cancelButton]}
+                      onPress={handleCancelEdit}
+                      disabled={isSavingTitle}
+                    >
+                      <Text style={styles.cancelButtonText}>✕ Cancel</Text>
+                    </Pressable>
+                    <Pressable
+                      style={[styles.editButton, styles.saveButton]}
+                      onPress={handleSaveTitle}
+                      disabled={isSavingTitle}
+                    >
+                      {isSavingTitle ? (
+                        <ActivityIndicator size="small" color="#fcfdfb" />
+                      ) : (
+                        <Text style={styles.saveButtonText}>✓ Save</Text>
+                      )}
+                    </Pressable>
+                  </View>
+                </View>
               ) : (
-                <Text style={[styles.tempatSampahKoica, styles.statusClr]}>
-                  {bin?.title || binTitle}
-                </Text>
+                <View style={styles.titleDisplayContainer}>
+                  <Text style={[styles.tempatSampahKoica, styles.statusClr]}>
+                    {bin?.title || binTitle}
+                  </Text>
+                  <Pressable onPress={() => setIsEditingTitle(true)}>
+                    <Pencil
+                      style={[styles.lucidepencilIcon, styles.badgeIconLayout]}
+                      width={16}
+                      height={16}
+                    />
+                  </Pressable>
+                </View>
               )}
             </View>
-            {isEditingTitle ? (
-              <View style={styles.editButtonsContainer}>
-                <Pressable
-                  style={[styles.editButton, styles.cancelButton]}
-                  onPress={handleCancelEdit}
-                  disabled={isSavingTitle}
-                >
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
-                </Pressable>
-                <Pressable
-                  style={[styles.editButton, styles.saveButton]}
-                  onPress={handleSaveTitle}
-                  disabled={isSavingTitle}
-                >
-                  {isSavingTitle ? (
-                    <ActivityIndicator size="small" color="#fcfdfb" />
-                  ) : (
-                    <Text style={styles.saveButtonText}>Save</Text>
-                  )}
-                </Pressable>
-              </View>
-            ) : (
-              <Pressable onPress={() => setIsEditingTitle(true)}>
-                <Pencil
-                  style={[styles.lucidepencilIcon, styles.badgeIconLayout]}
-                  width={16}
-                  height={16}
-                />
-              </Pressable>
-            )}
           </View>
-          <View style={styles.lucidemapPinParent}>
-            <MapPin style={styles.lucidemapPinIcon} width={14} height={14} />
-            <Text style={[styles.koica, styles.organikLayout]}>
-              {bin?.location || "KOICA"}
-            </Text>
-          </View>
+        </View>
+        <View style={styles.locationContainer}>
+          <MapPin style={styles.lucidemapPinIcon} width={14} height={14} />
+          <Text style={[styles.koica, styles.organikLayout]}>
+            {bin?.location || "KOICA"}
+          </Text>
         </View>
         <View style={styles.frameView}>
           <View style={[styles.frameGroup, styles.topbarFlexBox]}>
@@ -790,10 +774,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
   },
-  lucidemapPinParent: {
+  locationContainer: {
     gap: 4,
     flexDirection: "row",
     alignItems: "center",
+    alignSelf: "flex-start",
+    marginTop: 8,
+    paddingHorizontal: 16,
   },
   topbar: {
     shadowColor: "rgba(0, 0, 0, 0.25)",
@@ -1146,30 +1133,64 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: Gap.gap_sm,
   },
-  editButtonsContainer: {
-    flexDirection: "row",
+  editTitleContainer: {
+    flex: 1,
+    flexDirection: "column",
     gap: Gap.gap_sm,
   },
+  editButtonsRow: {
+    flexDirection: "row",
+    gap: Gap.gap_sm,
+    alignSelf: "stretch",
+  },
+  titleDisplayContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Gap.gap_sm,
+    flex: 1,
+  },
+  titleEditContainer: {
+    gap: Gap.gap_sm,
+    alignSelf: "stretch",
+    flex: 1,
+    flexDirection: "column",
+  },
   editButton: {
-    padding: 8,
+    padding: 12,
     borderRadius: 8,
     backgroundColor: "#fcfdfb",
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 44,
+    shadowColor: "rgba(0, 0, 0, 0.1)",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowRadius: 4,
+    elevation: 2,
+    shadowOpacity: 1,
+    borderWidth: 1,
+    borderColor: "#e5e0eb",
   },
   cancelButton: {
     backgroundColor: "#aba7af",
   },
   cancelButtonText: {
     color: "#fcfdfb",
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: "Poppins-SemiBold",
+    fontWeight: "600",
   },
   saveButton: {
     backgroundColor: "#5b913b",
   },
   saveButtonText: {
     color: "#fcfdfb",
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: "Poppins-SemiBold",
+    fontWeight: "600",
   },
 });
 
