@@ -1,14 +1,14 @@
-export default {
+module.exports = {
   expo: {
     name: "BinGo",
-    slug: "BinGo",
+    slug: "bingoapp",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./assets/images/icon.png",
+    icon: "./assets/icon.png",
     scheme: "myapp",
     userInterfaceStyle: "light",
     splash: {
-      image: "./assets/images/splash.png",
+      image: "./assets/splash.png",
       resizeMode: "contain",
       backgroundColor: "#ffffff"
     },
@@ -20,14 +20,14 @@ export default {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: "./assets/images/adaptive-icon.png",
+        foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#ffffff"
       }
     },
     web: {
       bundler: "metro",
       output: "static",
-      favicon: "./assets/images/favicon.png"
+      favicon: "./assets/favicon.png"
     },
     plugins: [
       "expo-router"
@@ -36,8 +36,8 @@ export default {
       typedRoutes: true
     },
     extra: {
-      supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
-      supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+      EXPO_PUBLIC_SUPABASE_URL: 'https://ttfgytlgvflkceggvdil.supabase.co',
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0Zmd5dGxndmZsa2NlZ2d2ZGlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc2NTg1OTEsImV4cCI6MjA2MzIzNDU5MX0.Rg884syk5n799ak_BpgNYHRjrGXp8V8bsNR7GCtnvb8'
     }
   }
 }; 

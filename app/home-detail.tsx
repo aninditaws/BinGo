@@ -1,5 +1,5 @@
 import * as React from "react";
-import {ScrollView, StyleSheet, Text, View, Pressable, Image, TextInput} from "react-native";
+import {ScrollView, StyleSheet, Text, View, Pressable, Image, TextInput, Dimensions, SafeAreaView} from "react-native";
 import ChevronRight from "../assets/icons/chevron-right.svg"
 import Pencil from "../assets/icons/pencil.svg"
 import MapPin from "../assets/icons/map-pin-gray.svg"
@@ -14,35 +14,38 @@ import UserNavbar from "../assets/icons/user-light.svg"
 import { Gap, Color, FontSize, FontFamily, Border, Padding } from "../GlobalStyles";
 import { useRouter } from "expo-router";
 
+const { width: screenWidth } = Dimensions.get('window');
+
 const Detail = () => {
   const router = useRouter();
   const [isEditingTitle, setIsEditingTitle] = React.useState(false);
   const [binTitle, setBinTitle] = React.useState("Tempat Sampah KOICA #1");
-  
+  	
   return (
+    <SafeAreaView style={styles.safeArea}>
     <ScrollView style={styles.detail}>
       <View style={styles.frameParent}>
         <View style={[styles.frameGroup, styles.topbarFlexBox]}>
           <View style={styles.frameContainer}>
             <View style={styles.lucidechevronRightParent}>
-              <Pressable onPress={() => router.back()}>
-                <ChevronRight style={styles.lucidechevronRightIcon} width={24} height={24} />
-              </Pressable>
-              {isEditingTitle ? (
-                <TextInput
-                  style={[styles.tempatSampahKoica, styles.statusClr, { flex: 1, borderBottomWidth: 1, borderColor: Color.grayscaleBorder }]}
-                  value={binTitle}
-                  onChangeText={setBinTitle}
-                  autoFocus
-                  onBlur={() => setIsEditingTitle(false)}
-                />
-              ) : (
-                <Text style={[styles.tempatSampahKoica, styles.statusClr]}>{binTitle}</Text>
-              )}
+                <Pressable onPress={() => router.back()}>
+              <ChevronRight style={styles.lucidechevronRightIcon} width={24} height={24} />
+                </Pressable>
+                {isEditingTitle ? (
+                  <TextInput
+                    style={[styles.tempatSampahKoica, styles.statusClr, { flex: 1, borderBottomWidth: 1, borderColor: Color.grayscaleBorder }]}
+                    value={binTitle}
+                    onChangeText={setBinTitle}
+                    autoFocus
+                    onBlur={() => setIsEditingTitle(false)}
+                  />
+                ) : (
+                  <Text style={[styles.tempatSampahKoica, styles.statusClr]}>{binTitle}</Text>
+                )}
             </View>
-            <Pressable onPress={() => setIsEditingTitle(true)}>
-              <Pencil style={[styles.lucidepencilIcon, styles.badgeIconLayout]} width={16} height={16} />
-            </Pressable>
+              <Pressable onPress={() => setIsEditingTitle(true)}>
+            <Pencil style={[styles.lucidepencilIcon, styles.badgeIconLayout]} width={16} height={16} />
+              </Pressable>
           </View>
           <View style={styles.lucidemapPinParent}>
             <MapPin style={styles.lucidemapPinIcon} width={14} height={14} />
@@ -53,42 +56,42 @@ const Detail = () => {
           <View style={[styles.frameGroup, styles.topbarFlexBox]}>
             <Text style={[styles.status, styles.bingoTypo]}>Status</Text>
             <View style={styles.status1}>
-              <View style={[styles.statusDot, { backgroundColor: Color.errorDanger500 }]} />
+                <View style={[styles.statusDot, { backgroundColor: Color.errorDanger500 }]} />
               <Text style={[styles.penuh, styles.penuhLayout]}>Penuh</Text>
             </View>
           </View>
-          <View style={styles.frameChild} />
-          <View style={styles.statusListContainer}>
-            <View style={[styles.statusRow, { backgroundColor: 'transparent' }]}>
-              <View style={styles.statusLabelContent}>
-                <OrganicOutline style={styles.mdiorganicOutlineIcon} width={15} height={15} />
-                <Text style={[styles.statusLabelText, { color: Color.grayscaleBlack }]}>Organik</Text>
+            <View style={styles.frameChild} />
+            <View style={styles.statusListContainer}>
+              <View style={[styles.statusRow, { backgroundColor: 'transparent' }]}>
+                <View style={styles.statusLabelContent}>
+                  <OrganicOutline style={styles.mdiorganicOutlineIcon} width={15} height={15} />
+                  <Text style={[styles.statusLabelText, { color: Color.grayscaleBlack }]}>Organik</Text>
+                </View>
+                <View style={styles.statusValueContent}>
+                  <View style={[styles.statusDot, { backgroundColor: Color.approvalApproval700 }]} />
+                  <Text style={[styles.statusValueText, { color: Color.grayscaleBlack }]}>Kosong</Text>
+                </View>
               </View>
-              <View style={styles.statusValueContent}>
-                <View style={[styles.statusDot, { backgroundColor: Color.approvalApproval700 }]} />
-                <Text style={[styles.statusValueText, { color: Color.grayscaleBlack }]}>Kosong</Text>
-              </View>
-            </View>
 
-            <View style={[styles.statusRow, { backgroundColor: "#FEF2F2" }]}>
-              <View style={styles.statusLabelContent}>
-                <LabBottlePlastic width={15} height={15} />
-                <Text style={[styles.statusLabelText, { color: Color.errorDanger500 }]}>Anorganik</Text>
+              <View style={[styles.statusRow, { backgroundColor: "#FEF2F2" }]}>
+                <View style={styles.statusLabelContent}>
+                  <LabBottlePlastic width={15} height={15} />
+                  <Text style={[styles.statusLabelText, { color: Color.errorDanger500 }]}>Anorganik</Text>
+                </View>
+                <View style={styles.statusValueContent}>
+                  <View style={[styles.statusDot, { backgroundColor: Color.errorDanger500 }]} />
+                  <Text style={[styles.statusValueText, { color: "#d51a52" }]}>Penuh</Text>
+                </View>
               </View>
-              <View style={styles.statusValueContent}>
-                <View style={[styles.statusDot, { backgroundColor: Color.errorDanger500 }]} />
-                <Text style={[styles.statusValueText, { color: "#d51a52" }]}>Penuh</Text>
-              </View>
-            </View>
 
-            <View style={[styles.statusRow, { backgroundColor: 'transparent' }]}>
-              <View style={styles.statusLabelContent}>
-                <Danger style={styles.makidangerIcon} width={13} height={13} />
-                <Text style={[styles.statusLabelText, { color: Color.grayscaleBlack }]}>B3</Text>
-              </View>
-              <View style={styles.statusValueContent}>
+              <View style={[styles.statusRow, { backgroundColor: 'transparent' }]}>
+                <View style={styles.statusLabelContent}>
+                  <Danger style={styles.makidangerIcon} width={13} height={13} />
+                  <Text style={[styles.statusLabelText, { color: Color.grayscaleBlack }]}>B3</Text>
+                </View>
+                <View style={styles.statusValueContent}>
                 <View style={[styles.statusDot, { backgroundColor: Color.primaryPrimary500 }]} />
-                <Text style={[styles.statusValueText, { color: Color.grayscaleBlack }]}>Kosong</Text>
+                  <Text style={[styles.statusValueText, { color: Color.grayscaleBlack }]}>Kosong</Text>
               </View>
             </View>
           </View>
@@ -98,13 +101,13 @@ const Detail = () => {
           <View style={styles.userCardsParent}>
             <View style={styles.userCards}>
               <View style={[styles.maskGroupParent, styles.textPosition]}>
-                <Image style={styles.avatarImage} resizeMode="cover" source={require("../assets/icons/person.png")} />
+                  <Image style={styles.avatarImage} resizeMode="cover" source={require("../assets/icons/person.png")} />
                 <Text style={[styles.agusSutyono, styles.organikLayout]}>Agus Sutyono</Text>
               </View>
             </View>
             <View style={styles.userCards}>
               <View style={[styles.maskGroupParent, styles.textPosition]}>
-                <Image style={styles.avatarImage} resizeMode="cover" source={require("../assets/icons/person.png")} />
+                  <Image style={styles.avatarImage} resizeMode="cover" source={require("../assets/icons/person.png")} />
                 <Text style={[styles.agusSutyono, styles.organikLayout]}>Budi Rahaja</Text>
               </View>
             </View>
@@ -113,7 +116,7 @@ const Detail = () => {
       </View>
       <View style={[styles.topbar, styles.topbarLayout]}>
         <Pressable style={styles.brandName} onPress={() => router.push("/home")}>
-          <Image style={styles.binGoLogo} resizeMode="cover" source={require("../assets/images/icon.png")} />
+            <Image style={styles.binGoLogo} resizeMode="cover" source={require("../assets/images/icon.png")} />
           <Text style={[styles.bingo, styles.bingoTypo]}>BinGo</Text>
         </Pressable>
         <View style={styles.bellParent}>
@@ -143,10 +146,118 @@ const Detail = () => {
         </View>
       </View>
     </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: Color.grayscaleWhite,
+  },
+  detail: {
+    flex: 1,
+    backgroundColor: Color.grayscaleWhite,
+  },
+  frameParent: {
+    padding: 16,
+    gap: 24,
+  },
+  frameGroup: {
+    width: '100%',
+    gap: Gap.gap_0,
+    justifyContent: "space-between",
+    alignItems: "center",
+    flexDirection: "row"
+  },
+  frameContainer: {
+    flex: 1,
+    gap: Gap.gap_md,
+    alignItems: "center",
+    flexDirection: "row",
+  },
+  lucidechevronRightParent: {
+    flex: 1,
+    gap: Gap.gap_md,
+    alignItems: "center",
+    flexDirection: "row"
+  },
+  tempatSampahKoica: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: Color.grayscaleBlack,
+    fontFamily: FontFamily.poppinsRegular,
+    textAlign: "left",
+    fontWeight: "600",
+    flex: 1,
+  },
+  statusListContainer: {
+    gap: Gap.gap_sm,
+    width: '100%',
+  },
+  statusRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Padding.p_sm,
+    paddingHorizontal: Padding.p_xs,
+    borderRadius: Border.br_xs,
+    borderWidth: 1.5,
+    borderColor: Color.colorGainsboro,
+    marginBottom: Gap.gap_xs,
+    width: '100%',
+  },
+  userCardsParent: {
+    gap: Gap.gap_sm,
+    width: '100%',
+  },
+  userCards: {
+    height: 51,
+    width: '100%',
+  },
+  maskGroupParent: {
+    width: '100%',
+    borderRadius: Border.br_7xs,
+    borderColor: Color.colorGainsboro,
+    paddingHorizontal: Padding.p_sm,
+    gap: Gap.gap_xl,
+    paddingVertical: Padding.p_5xs,
+    alignItems: "center",
+    flexDirection: "row",
+    borderWidth: 1,
+    borderStyle: "solid",
+    backgroundColor: Color.grayscaleWhite
+  },
+  topbar: {
+    width: '100%',
+    shadowColor: "rgba(0, 0, 0, 0.25)",
+    shadowOffset: {
+      width: 0,
+      height: 4
+    },
+    shadowRadius: 4,
+    elevation: 4,
+    shadowOpacity: 1,
+    paddingHorizontal: 16,
+    paddingTop: 24,
+    paddingBottom: 18,
+    backgroundColor: "#fcfdfb"
+  },
+  navbar: {
+    width: '100%',
+    position: 'absolute',
+    bottom: 0,
+    backgroundColor: Color.primaryPrimary500,
+  },
+  navbar1: {
+    width: '100%',
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+    gap: Gap.gap_0,
+    justifyContent: "space-between",
+    alignItems: "center",
+    flexDirection: "row"
+  },
   topbarFlexBox: {
     gap: Gap.gap_0,
     justifyContent: "space-between",
@@ -351,48 +462,6 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.poppinsRegular,
     textAlign: "left"
   },
-  tempatSampahKoica: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: Color.grayscaleBlack,
-    fontFamily: FontFamily.poppinsRegular,
-    textAlign: "left",
-    fontWeight: "600"
-  },
-  lucidechevronRightParent: {
-    gap: Gap.gap_md,
-    alignItems: "center",
-    flexDirection: "row"
-  },
-  lucidemapPinParent: {
-    gap: 4,
-    flexDirection: "row",
-    alignItems: "center"
-  },
-  topbar: {
-    shadowColor: "rgba(0, 0, 0, 0.25)",
-    shadowOffset: {
-      width: 0,
-      height: 4
-    },
-    shadowRadius: 4,
-    elevation: 4,
-    shadowOpacity: 1,
-    paddingHorizontal: 16,
-    paddingTop: 24,
-    paddingBottom: 18,
-    width: 393,
-    left: 0,
-    top: 0,
-    position: "absolute",
-    backgroundColor: "#fcfdfb"
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: Gap.gap_xs
-  },
   frameParent: {
     top: 100,
     left: 16,
@@ -483,36 +552,6 @@ const styles = StyleSheet.create({
     zIndex: 3,
     height: 54
   },
-  navbar1: {
-    marginTop: -47,
-    backgroundColor: "#5b913b",
-    paddingHorizontal: 64,
-    paddingVertical: 20,
-    left: "0%",
-    right: "0%",
-    width: "100%",
-    gap: Gap.gap_0,
-    justifyContent: "space-between",
-    alignItems: "center",
-    flexDirection: "row"
-  },
-  navbar: {
-    top: 750,
-    height: 94,
-    position: "absolute",
-    width: 393,
-    left: 0
-  },
-  detail: {
-    borderColor: Color.grayscaleBorder,
-    flex: 1,
-    maxWidth: "100%",
-    width: "100%",
-    borderWidth: 1,
-    borderStyle: "solid",
-    backgroundColor: Color.grayscaleWhite,
-    borderRadius: Border.br_xs
-  },
   navbarChild: {
     top: 11,
     left: 43,
@@ -528,51 +567,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginRight: Gap.gap_sm
   },
-  maskGroupParent: {
-    marginTop: -25,
-    width: "100%",
-    right: "0%",
-    left: "0%",
-    borderRadius: Border.br_7xs,
-    borderColor: Color.colorGainsboro,
-    paddingHorizontal: Padding.p_sm,
-    gap: Gap.gap_xl,
-    paddingVertical: Padding.p_5xs,
-    alignItems: "center",
-    flexDirection: "row",
-    borderWidth: 1,
-    borderStyle: "solid",
-    backgroundColor: Color.grayscaleWhite
-  },
-  userCards: {
-    height: 51,
-    width: 340
-  },
-  userCardsParent: {
-    gap: Gap.gap_sm,
-    width: 340
-  },
-  pengurus: {
-    textAlign: "left",
-    color: Color.grayscaleHintText,
-    lineHeight: 23,
-    fontSize: FontSize.size_lgi,
-    alignSelf: "stretch"
-  },
   agusSutyono: {
     fontFamily: FontFamily.poppinsRegular,
     textAlign: "left",
     color: Color.grayscaleHintText
-  },
-  frameGroup: {
-    alignSelf: "stretch"
-  },
-  frameContainer: {
-    gap: Gap.gap_md,
-    alignItems: "center",
-    flexDirection: "row",
-    marginTop: -8,
-    marginLeft: -8
   },
   frameView: {
     gap: Gap.gap_md,
@@ -620,21 +618,6 @@ const styles = StyleSheet.create({
   makidangerIcon: {
     overflow: "hidden"
   },
-  statusListContainer: {
-    gap: Gap.gap_sm
-  },
-  statusRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Padding.p_sm,
-    paddingHorizontal: Padding.p_xs,
-    borderRadius: Border.br_xs,
-    borderWidth: 1.5,
-    borderColor: Color.colorGainsboro,
-    marginBottom: Gap.gap_xs,
-    width: 340
-  },
   statusLabelContent: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -654,6 +637,24 @@ const styles = StyleSheet.create({
     lineHeight: 14,
     fontSize: FontSize.size_xs,
     fontFamily: FontFamily.poppinsRegular
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: Gap.gap_xs
+  },
+  lucidemapPinParent: {
+    gap: 4,
+    flexDirection: "row",
+    alignItems: "center"
+  },
+  pengurus: {
+    textAlign: "left",
+    color: Color.grayscaleHintText,
+    lineHeight: 23,
+    fontSize: FontSize.size_lgi,
+    alignSelf: "stretch"
   }
 });
 
