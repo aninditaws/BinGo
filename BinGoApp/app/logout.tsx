@@ -1,13 +1,24 @@
-import * as React from "react";
-import { StyleSheet, View, Text, Pressable } from "react-native";
-import LogoutPopup from "../assets/icons/log-out-popup.svg";
 import { useRouter } from "expo-router";
+import * as React from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import LogoutPopup from "../assets/icons/log-out-popup.svg";
+import { useAuth } from "../lib/AuthContext";
 
 const LogoutModal = ({ onClose }: { onClose: () => void }) => {
   const router = useRouter();
+  const { signOut } = useAuth();
 
-  const handleLogout = () => {
-    router.replace("/login");
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      onClose();
+      router.replace("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Still navigate to login even if logout fails
+      onClose();
+      router.replace("/login");
+    }
   };
 
   return (
@@ -18,10 +29,16 @@ const LogoutModal = ({ onClose }: { onClose: () => void }) => {
           Apakah Anda yakin ingin keluar dari akun ini?
         </Text>
         <View style={styles.buttonContainer}>
-          <Pressable style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
+          <Pressable
+            style={[styles.button, styles.logoutButton]}
+            onPress={handleLogout}
+          >
             <Text style={[styles.buttonText, styles.logoutText]}>Keluar</Text>
           </Pressable>
-          <Pressable style={[styles.button, styles.cancelButton]} onPress={onClose}>
+          <Pressable
+            style={[styles.button, styles.cancelButton]}
+            onPress={onClose}
+          >
             <Text style={[styles.buttonText, styles.cancelText]}>Batal</Text>
           </Pressable>
         </View>
@@ -41,7 +58,7 @@ const styles = StyleSheet.create({
     shadowColor: "rgba(42, 51, 70, 0.04)",
     shadowOffset: {
       width: 0,
-      height: 6
+      height: 6,
     },
     shadowRadius: 6,
     elevation: 6,
@@ -49,11 +66,11 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     alignItems: "center",
-    width: "100%"
+    width: "100%",
   },
   illustration: {
     marginBottom: 16,
-    overflow: "hidden"
+    overflow: "hidden",
   },
   description: {
     fontSize: 14,
@@ -61,37 +78,37 @@ const styles = StyleSheet.create({
     color: "#1e3014",
     textAlign: "center",
     marginBottom: 20,
-    lineHeight: 17
+    lineHeight: 17,
   },
   buttonContainer: {
     width: "100%",
-    gap: 8
+    gap: 8,
   },
   button: {
     width: "100%",
     paddingVertical: 12,
     borderRadius: 8,
-    alignItems: "center"
+    alignItems: "center",
   },
   buttonText: {
     fontSize: 14,
     fontFamily: "Poppins-Regular",
-    fontWeight: "600"
+    fontWeight: "600",
   },
   logoutButton: {
-    backgroundColor: "#d51a52"
+    backgroundColor: "#d51a52",
   },
   cancelButton: {
     backgroundColor: "#fcfdfb",
     borderWidth: 1,
-    borderColor: "#e5e0eb"
+    borderColor: "#e5e0eb",
   },
   logoutText: {
-    color: "#fcfdfb"
+    color: "#fcfdfb",
   },
   cancelText: {
-    color: "#1e3014"
-  }
+    color: "#1e3014",
+  },
 });
 
-export default LogoutModal; 
+export default LogoutModal;

@@ -2,6 +2,7 @@ import * as React from "react";
 import { ScrollView, Image, StyleSheet, Text, View, Pressable, TextInput, Dimensions, Platform, Alert } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from "../lib/AuthContext";
 
 const { width, height } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
@@ -11,6 +12,7 @@ const Login = () => {
   const [password, setPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
+  const { signIn } = useAuth();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -20,24 +22,35 @@ const Login = () => {
 
     try {
       setLoading(true);
-      // For now, just navigate to home page
+      const { error } = await signIn(email, password);
+
+      if (error) {
+        let errorMessage =
+          "Email atau password yang dimasukkan salah! Silahkan coba lagi!";
+
+        // Handle specific error cases
+        if (error.message.includes("Invalid login credentials")) {
+          errorMessage =
+            "Email atau password yang dimasukkan salah! Silahkan coba lagi!";
+        } else if (error.message.includes("Email not confirmed")) {
+          errorMessage =
+            "Email belum diverifikasi. Silahkan cek email Anda untuk verifikasi!";
+        } else if (error.message.includes("Invalid email")) {
+          errorMessage = "Format email tidak valid!";
+        } else if (error.message.includes("rate limit")) {
+          errorMessage =
+            "Terlalu banyak percobaan login. Silahkan coba beberapa saat lagi!";
+        }
+
+        Alert.alert("Error", errorMessage);
+        return;
+      }
+
       router.replace("/home");
-    } catch (error: any) {
-      Alert.alert('Error', error.message);
+    } catch (error) {
+      Alert.alert("Error", "Terjadi kesalahan. Silahkan coba lagi!");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-      });
-
-      if (error) throw error;
-    } catch (error: any) {
-      Alert.alert('Error', error.message);
     }
   };
 
@@ -116,21 +129,6 @@ const Login = () => {
                   <Text style={styles.belumPunyaAkun}>{`Belum punya akun? `}</Text>
                   <Text style={styles.daftar}>Daftar</Text>
                 </Text>
-              </Pressable>
-
-              <Pressable 
-                style={styles.btnGoogleLightWrapper} 
-                onPress={handleGoogleLogin}
-                disabled={loading}
-              >
-                <View style={[styles.btnGoogleLight, styles.btnGoogleLightLayout]}>
-                  <View style={[styles.officialButtonsSignInWit, styles.btnGoogleLightLayout]}>
-                    <Ionicons name="logo-google" size={25} color="#1f1f1f" />
-                    <Text style={[styles.masukMenggunakanGoogle, styles.button1Layout]}>
-                      Masuk menggunakan Google
-                    </Text>
-                  </View>
-                </View>
               </Pressable>
             </View>
           </View>

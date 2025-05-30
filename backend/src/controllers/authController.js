@@ -1,0 +1,145 @@
+const { body, validationResult } = require("express-validator");
+const authService = require("../services/authService");
+
+class AuthController {
+  // Validation rules
+  static signUpValidation = [
+    body("email").isEmail().withMessage("Email format is invalid"),
+    body("password")
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters"),
+  ];
+
+  static signInValidation = [
+    body("email").isEmail().withMessage("Email format is invalid"),
+    body("password").notEmpty().withMessage("Password is required"),
+  ];
+
+  async signUp(req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          error: "Validation failed",
+          details: errors.array(),
+        });
+      }
+
+      const { email, password } = req.body;
+      const result = await authService.signUp(email, password);
+
+      res.status(201).json({
+        message:
+          "User created successfully. Please check your email for verification.",
+        user: result.user,
+        session: result.session,
+      });
+    } catch (error) {
+      console.error("SignUp controller error:", error);
+
+      let errorMessage = "Registration failed. Please try again.";
+      if (error.message.includes("already registered")) {
+        errorMessage = "Email already registered. Please login instead.";
+      } else if (error.message.includes("Invalid email")) {
+        errorMessage = "Invalid email format.";
+      } else if (error.message.includes("Password")) {
+        errorMessage = "Password must be at least 6 characters long.";
+      }
+
+      res.status(400).json({ error: errorMessage });
+    }
+  }
+
+  async signIn(req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          error: "Validation failed",
+          details: errors.array(),
+        });
+      }
+
+      const { email, password } = req.body;
+      const result = await authService.signIn(email, password);
+
+      res.status(200).json({
+        message: "Login successful",
+        user: result.user,
+        session: result.session,
+      });
+    } catch (error) {
+      console.error("SignIn controller error:", error);
+
+      let errorMessage = "Invalid email or password. Please try again.";
+      if (error.message.includes("Invalid login credentials")) {
+        errorMessage = "Invalid email or password. Please try again.";
+      } else if (error.message.includes("Email not confirmed")) {
+        errorMessage =
+          "Email not verified. Please check your email for verification link.";
+      } else if (error.message.includes("Invalid email")) {
+        errorMessage = "Invalid email format.";
+      } else if (error.message.includes("rate limit")) {
+        errorMessage = "Too many login attempts. Please try again later.";
+      }
+
+      res.status(401).json({ error: errorMessage });
+    }
+  }
+
+  async signOut(req, res) {
+    try {
+      const accessToken = req.token; // from auth middleware
+      await authService.signOut(accessToken);
+
+      res.status(200).json({
+        message: "Logout successful",
+      });
+    } catch (error) {
+      console.error("SignOut controller error:", error);
+      res.status(500).json({ error: "Logout failed. Please try again." });
+    }
+  }
+
+  async getProfile(req, res) {
+    try {
+      const user = req.user; // from auth middleware
+
+      res.status(200).json({
+        user: {
+          id: user.id,
+          email: user.email,
+          email_confirmed_at: user.email_confirmed_at,
+          created_at: user.created_at,
+          updated_at: user.updated_at,
+        },
+      });
+    } catch (error) {
+      console.error("Get profile controller error:", error);
+      res.status(500).json({ error: "Failed to get user profile." });
+    }
+  }
+
+  async refreshToken(req, res) {
+    try {
+      const { refresh_token } = req.body;
+
+      if (!refresh_token) {
+        return res.status(400).json({ error: "Refresh token is required" });
+      }
+
+      const result = await authService.refreshSession(refresh_token);
+
+      res.status(200).json({
+        message: "Token refreshed successfully",
+        user: result.user,
+        session: result.session,
+      });
+    } catch (error) {
+      console.error("Refresh token controller error:", error);
+      res.status(401).json({ error: "Invalid refresh token" });
+    }
+  }
+}
+
+module.exports = new AuthController();

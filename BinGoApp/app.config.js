@@ -10,13 +10,11 @@ export default {
     splash: {
       image: "./assets/images/splash.png",
       resizeMode: "contain",
-      backgroundColor: "#ffffff"
+      backgroundColor: "#ffffff",
     },
-    assetBundlePatterns: [
-      "**/*"
-    ],
+    assetBundlePatterns: ["**/*"],
     ios: {
-      supportsTablet: true
+      supportsTablet: true,
     },
     android: {
       adaptiveIcon: {
@@ -29,9 +27,7 @@ export default {
       output: "static",
       favicon: "./assets/images/favicon.png"
     },
-    plugins: [
-      "expo-router"
-    ],
+    plugins: ["expo-router"],
     experiments: {
       typedRoutes: true
     },

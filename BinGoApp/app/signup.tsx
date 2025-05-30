@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../lib/AuthContext";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -25,6 +26,7 @@ const Signup = () => {
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
+  const { signUp } = useAuth();
 
   const handleSignup = async () => {
     if (!fullName || !email || !password || !confirmPassword) {
@@ -33,30 +35,55 @@ const Signup = () => {
     }
 
     if (password !== confirmPassword) {
-      Alert.alert("Error", "Password dan konfirmasi password harus sama");
+      Alert.alert(
+        "Error",
+        "Kata sandi dan konfirmasi kata sandi tidak sesuai! Silahkan periksa kembali.",
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              setPassword("");
+              setConfirmPassword("");
+            },
+          },
+        ]
+      );
       return;
     }
 
     try {
       setLoading(true);
-      // For now, just navigate to home page
-      router.replace("/home");
-    } catch (error: any) {
-      Alert.alert("Error", error.message);
+      const { error } = await signUp(email, password);
+
+      if (error) {
+        let errorMessage =
+          "Terjadi kesalahan saat mendaftar. Silahkan coba lagi!";
+        console.log(error);
+
+        if (error.message.includes("already registered")) {
+          errorMessage = "Email sudah terdaftar. Silahkan lakukan login!";
+        } else if (error.message.includes("Invalid email")) {
+          errorMessage = "Format email tidak valid!";
+        } else if (error.message.includes("Password")) {
+          errorMessage = "Kata sandi harus minimal 6 karakter!";
+        } else {
+          errorMessage = error.toString();
+        }
+
+        Alert.alert("Error", errorMessage);
+        return;
+      }
+
+      Alert.alert("Berhasil", "Silahkan lanjutkan masuk ke aplikasi", [
+        {
+          text: "OK",
+          onPress: () => router.replace("/login"),
+        },
+      ]);
+    } catch (error) {
+      Alert.alert("Error", "Terjadi kesalahan. Silahkan coba lagi!");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleGoogleSignup = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-      });
-
-      if (error) throw error;
-    } catch (error: any) {
-      Alert.alert("Error", error.message);
     }
   };
 
@@ -170,33 +197,6 @@ const Signup = () => {
                   >{`Sudah punya akun? `}</Text>
                   <Text style={styles.syaratDanKetentuan}>Masuk</Text>
                 </Text>
-              </Pressable>
-
-              <Pressable
-                style={styles.btnGoogleLightWrapper}
-                onPress={handleGoogleSignup}
-                disabled={loading}
-              >
-                <View
-                  style={[styles.btnGoogleLight, styles.btnGoogleLightLayout]}
-                >
-                  <View
-                    style={[
-                      styles.officialButtonsSignInWit,
-                      styles.btnGoogleLightLayout,
-                    ]}
-                  >
-                    <Ionicons name="logo-google" size={25} color="#1f1f1f" />
-                    <Text
-                      style={[
-                        styles.masukMenggunakanGoogle,
-                        styles.button1Layout,
-                      ]}
-                    >
-                      Daftar menggunakan Google
-                    </Text>
-                  </View>
-                </View>
               </Pressable>
             </View>
           </View>

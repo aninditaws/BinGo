@@ -1,22 +1,31 @@
-import * as React from "react";
-import { Image, StyleSheet, Text, View, Pressable } from "react-native";
 import { router } from "expo-router";
+import * as React from "react";
+import { Image, StyleSheet, Text, View } from "react-native";
+import { useAuth } from "../lib/AuthContext";
 
 const Splash = () => {
+  const { isAuthenticated, loading } = useAuth();
+
   React.useEffect(() => {
     const timer = setTimeout(() => {
-      router.replace("/signup");
+      if (!loading) {
+        if (isAuthenticated) {
+          router.replace("/home");
+        } else {
+          router.replace("/signup");
+        }
+      }
     }, 2000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [isAuthenticated, loading]);
 
   return (
     <View style={styles.splash}>
       <View style={styles.logoContainer}>
-        <Image 
-          style={styles.logoIcon} 
-          resizeMode="contain" 
-          source={require("../assets/images/icon.png")} 
+        <Image
+          style={styles.logoIcon}
+          resizeMode="contain"
+          source={require("../assets/images/icon.png")}
         />
         <Text style={styles.bingo}>BinGo</Text>
       </View>
@@ -49,4 +58,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Splash; 
+export default Splash;
