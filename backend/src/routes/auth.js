@@ -45,5 +45,10 @@ router.get(
   authMiddleware,
   authController.getProfile.bind(authController)
 );
+router.put(
+  "/profile",
+  authMiddleware,
+  authController.updateProfile.bind(authController)
+);
 
 module.exports = router;

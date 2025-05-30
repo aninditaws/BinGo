@@ -1,23 +1,32 @@
 import * as React from "react";
-import {ScrollView, StyleSheet, Text, View, Pressable, Image, Dimensions, Platform} from "react-native";
-import ChevronRight from "../assets/icons/chevron-right.svg"
-import User from "../assets/icons/user-pink.svg"
-import Mail from "../assets/icons/mail.svg"
-import MapPin from "../assets/icons/map-pin-pink.svg"
-import Bell from "../assets/icons/bell.svg"
-import Settings from "../assets/icons/settings.svg"
-import HomeIcon from "../assets/icons/house-light.svg"
-import SearchIcon from "../assets/icons/search-light.svg"
-import UserNavbar from "../assets/icons/user-dark.svg"
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  Pressable,
+  Image,
+  Dimensions,
+  Platform,
+} from "react-native";
+import ChevronRight from "../assets/icons/chevron-right.svg";
+import User from "../assets/icons/user-pink.svg";
+import Mail from "../assets/icons/mail.svg";
+import MapPin from "../assets/icons/map-pin-pink.svg";
+import Bell from "../assets/icons/bell.svg";
+import Settings from "../assets/icons/settings.svg";
+import HomeIcon from "../assets/icons/house-light.svg";
+import SearchIcon from "../assets/icons/search-light.svg";
+import UserNavbar from "../assets/icons/user-dark.svg";
 import { useRouter } from "expo-router";
 
 const Profile = () => {
   const router = useRouter();
-  const { height: screenHeight } = Dimensions.get('window');
+  const { height: screenHeight } = Dimensions.get("window");
 
   // Dynamic positioning to fix layout issues
-  const { width: screenWidth } = Dimensions.get('window');
-  
+  const { width: screenWidth } = Dimensions.get("window");
+
   const dynamicStyles = StyleSheet.create({
     navbar: {
       ...styles.navbar,
@@ -25,36 +34,45 @@ const Profile = () => {
     },
     frameParent: {
       ...styles.frameParent,
-      top: Platform.OS === 'web' ? 130 : 150, // Adjust content position to match even smaller topbar
-      paddingBottom: Platform.OS === 'ios' ? 120 : 100, // Add bottom padding to prevent overlap
+      top: Platform.OS === "web" ? 130 : 150, // Adjust content position to match even smaller topbar
+      paddingBottom: Platform.OS === "ios" ? 120 : 100, // Add bottom padding to prevent overlap
     },
     navbarChild: {
       ...styles.navbarChild,
-      left: Platform.OS === 'web'
-        ? 265  // Original perfect web positioning
-        : Math.round(((screenWidth - 92) / 3) * 2) + 56, // Mobile responsive positioning
+      left:
+        Platform.OS === "web"
+          ? 265 // Original perfect web positioning
+          : Math.round(((screenWidth - 92) / 3) * 2) + 56, // Mobile responsive positioning
     },
     topbar: {
       ...styles.topbar,
-      paddingTop: Platform.OS === 'web' ? 45 : 60, // Further reduced padding for even smaller topbar
-      paddingBottom: Platform.OS === 'web' ? 15 : 20, // Further reduced bottom padding
+      paddingTop: Platform.OS === "web" ? 45 : 60, // Further reduced padding for even smaller topbar
+      paddingBottom: Platform.OS === "web" ? 15 : 20, // Further reduced bottom padding
     },
     logoIcon: {
       width: 36, // Make logo bigger
       height: 36,
-    }
+    },
   });
 
   return (
     <ScrollView style={styles.profile}>
       <View style={dynamicStyles.frameParent}>
         <View style={styles.frameGroup}>
-          <Pressable style={styles.chevronRightParent} onPress={()=>{}}>
-            <ChevronRight style={styles.chevronRightIcon} width={24} height={24} />
+          <Pressable style={styles.chevronRightParent} onPress={() => {}}>
+            <ChevronRight
+              style={styles.chevronRightIcon}
+              width={24}
+              height={24}
+            />
             <Text style={[styles.profil, styles.bingoTypo]}>Profil</Text>
           </Pressable>
           <View style={styles.profileIconContainer}>
-            <Image style={styles.profileImage} resizeMode="cover" source={require("../assets/icons/person.png")} />
+            <Image
+              style={styles.profileImage}
+              resizeMode="cover"
+              source={require("../assets/icons/person.png")}
+            />
           </View>
         </View>
         <View style={styles.frameContainer}>
@@ -66,7 +84,9 @@ const Profile = () => {
               </View>
               <View style={[styles.inputdropdown, styles.borderBorder]}>
                 <View style={styles.inputdropdownTxt}>
-                  <Text style={[styles.text, styles.namaTypo]}>Jason Jahja</Text>
+                  <Text style={[styles.text, styles.namaTypo]}>
+                    Jason Jahja
+                  </Text>
                 </View>
               </View>
             </View>
@@ -77,7 +97,9 @@ const Profile = () => {
               </View>
               <View style={[styles.inputdropdown, styles.borderBorder]}>
                 <View style={styles.inputdropdownTxt}>
-                  <Text style={[styles.text, styles.namaTypo]}>jasonjahja123@gmail.com</Text>
+                  <Text style={[styles.text, styles.namaTypo]}>
+                    jasonjahja123@gmail.com
+                  </Text>
                 </View>
               </View>
             </View>
@@ -93,14 +115,21 @@ const Profile = () => {
               </View>
             </View>
           </View>
-          <Pressable style={styles.button} onPress={()=>{}}>
+          <Pressable style={styles.button} onPress={() => {}}>
             <Text style={[styles.button1, styles.text3Clr]}>Simpan</Text>
           </Pressable>
         </View>
       </View>
       <View style={[dynamicStyles.topbar, styles.topbarLayout]}>
-        <Pressable style={styles.brandName} onPress={() => router.push("/home")}>
-          <Image style={dynamicStyles.logoIcon} resizeMode="cover" source={require("../assets/images/icon.png")} />
+        <Pressable
+          style={styles.brandName}
+          onPress={() => router.push("/home")}
+        >
+          <Image
+            style={dynamicStyles.logoIcon}
+            resizeMode="cover"
+            source={require("../assets/images/icon.png")}
+          />
           <Text style={[styles.bingo, styles.bingoTypo]}>BinGo</Text>
         </Pressable>
         <View style={styles.bellParent}>
@@ -115,11 +144,17 @@ const Profile = () => {
       <View style={[dynamicStyles.navbar, styles.topbarLayout]}>
         <View style={[styles.navbar1, styles.timePosition]}>
           <View style={[dynamicStyles.navbarChild, styles.statusBarPosition]} />
-          <Pressable style={styles.homeParent} onPress={() => router.push("/home")}>
+          <Pressable
+            style={styles.homeParent}
+            onPress={() => router.push("/home")}
+          >
             <HomeIcon style={styles.homeIcon} width={36} height={36} />
             <Text style={styles.beranda}>Beranda</Text>
           </Pressable>
-          <Pressable style={styles.searchParent} onPress={() => router.push("/search")}>
+          <Pressable
+            style={styles.searchParent}
+            onPress={() => router.push("/search")}
+          >
             <Text style={[styles.cari, styles.cariTypo]}>Cari</Text>
             <SearchIcon style={styles.searchIcon} width={32} height={32} />
           </Pressable>
@@ -139,41 +174,41 @@ const styles = StyleSheet.create({
     fontFamily: "Nunito-SemiBold",
     lineHeight: 26,
     fontSize: 22,
-    fontWeight: "600"
+    fontWeight: "600",
   },
   namaTypo: {
     fontFamily: "Poppins-Regular",
-    textAlign: "left"
+    textAlign: "left",
   },
   borderBorder: {
     borderWidth: 1,
-    borderStyle: "solid"
+    borderStyle: "solid",
   },
   text3Clr: {
     color: "#fcfdfb",
-    textAlign: "center"
+    textAlign: "center",
   },
   topbarFlexBox: {
     gap: 0,
     justifyContent: "space-between",
     flexDirection: "row",
-    alignItems: "center"
+    alignItems: "center",
   },
   statusBarPosition: {
     zIndex: 0,
-    position: "absolute"
+    position: "absolute",
   },
   timePosition: {
     top: "50%",
-    position: "absolute"
+    position: "absolute",
   },
   iconLayout: {
     maxHeight: "100%",
-    position: "absolute"
+    position: "absolute",
   },
   topbarLayout: {
     width: "100%",
-    left: 0
+    left: 0,
   },
   cariTypo: {
     top: "74.07%",
@@ -184,19 +219,19 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins-Regular",
     position: "absolute",
     width: "100%",
-    left: 0
+    left: 0,
   },
   chevronRightIcon: {
-    overflow: "hidden"
+    overflow: "hidden",
   },
   profil: {
-    color: "#1e3014"
+    color: "#1e3014",
   },
   chevronRightParent: {
     gap: 2,
     flexDirection: "row",
     alignSelf: "stretch",
-    alignItems: "center"
+    alignItems: "center",
   },
   profileIconContainer: {
     width: 100,
@@ -205,40 +240,40 @@ const styles = StyleSheet.create({
     backgroundColor: "#e5e0eb",
     justifyContent: "center",
     alignItems: "center",
-    overflow: "hidden"
+    overflow: "hidden",
   },
   profileImage: {
     width: "100%",
-    height: "100%"
+    height: "100%",
   },
   frameGroup: {
     gap: 16,
     alignSelf: "stretch",
-    alignItems: "center"
+    alignItems: "center",
   },
   icon: {
-    overflow: "hidden"
+    overflow: "hidden",
   },
   nama: {
     fontSize: 15,
     lineHeight: 18,
-    color: "#1e3014"
+    color: "#1e3014",
   },
   iconParent: {
     gap: 8,
     flexDirection: "row",
-    alignItems: "center"
+    alignItems: "center",
   },
   text: {
     lineHeight: 20,
     color: "#1a141f",
     fontSize: 14,
-    flex: 1
+    flex: 1,
   },
   inputdropdownTxt: {
     flexDirection: "row",
     alignSelf: "stretch",
-    flex: 1
+    flex: 1,
   },
   inputdropdown: {
     borderRadius: 6,
@@ -246,58 +281,58 @@ const styles = StyleSheet.create({
     padding: 12,
     flexDirection: "row",
     alignSelf: "stretch",
-    backgroundColor: "#fcfdfb"
+    backgroundColor: "#fcfdfb",
   },
   frameParent1: {
     gap: 8,
-    alignSelf: "stretch"
+    alignSelf: "stretch",
   },
   frameView: {
     gap: 18,
-    alignSelf: "stretch"
+    alignSelf: "stretch",
   },
   button1: {
     lineHeight: 17,
     fontFamily: "Poppins-SemiBold",
     textAlign: "center",
     fontSize: 14,
-    fontWeight: "600"
+    fontWeight: "600",
   },
   frameContainer: {
     gap: 20,
     alignSelf: "stretch",
     marginTop: 20,
-    flex: 1
+    flex: 1,
   },
   frameParent: {
     left: 16,
     right: 16,
     gap: 16,
     alignItems: "center",
-    position: "absolute"
+    position: "absolute",
   },
   bingo: {
-    color: "#5b913b"
+    color: "#5b913b",
   },
   brandName: {
     alignItems: "center",
     gap: 8,
     flexDirection: "row",
-    flex: 1
+    flex: 1,
   },
   bellIcon: {
-    overflow: "hidden"
+    overflow: "hidden",
   },
   bellParent: {
     gap: 18,
     flexDirection: "row",
-    alignItems: "center"
+    alignItems: "center",
   },
   topbar: {
     shadowColor: "rgba(0, 0, 0, 0.25)",
     shadowOffset: {
       width: 0,
-      height: 4
+      height: 4,
     },
     shadowRadius: 4,
     elevation: 4,
@@ -312,7 +347,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fcfdfb",
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center"
+    alignItems: "center",
   },
   navbarChild: {
     top: 11,
@@ -321,10 +356,10 @@ const styles = StyleSheet.create({
     width: 92,
     height: 72,
     borderRadius: 12,
-    zIndex: 0
+    zIndex: 0,
   },
   homeIcon: {
-    overflow: "hidden"
+    overflow: "hidden",
   },
   beranda: {
     lineHeight: 14,
@@ -332,27 +367,27 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#fcfdfb",
     fontFamily: "Poppins-Regular",
-    alignSelf: "stretch"
+    alignSelf: "stretch",
   },
   homeParent: {
     width: 52,
     gap: 4,
     zIndex: 1,
-    alignItems: "center"
+    alignItems: "center",
   },
   cari: {
-    left: "11.46%"
+    left: "11.46%",
   },
   searchIcon: {
     left: 0,
     top: 0,
     overflow: "hidden",
-    position: "absolute"
+    position: "absolute",
   },
   searchParent: {
     width: 32,
     zIndex: 2,
-    height: 54
+    height: 54,
   },
   userIcon: {
     height: "59.26%",
@@ -363,15 +398,15 @@ const styles = StyleSheet.create({
     maxHeight: "100%",
     overflow: "hidden",
     maxWidth: "100%",
-    width: "100%"
+    width: "100%",
   },
   profil1: {
-    left: "6.25%"
+    left: "6.25%",
   },
   userParent: {
     width: 32,
     zIndex: 3,
-    height: 54
+    height: 54,
   },
   navbar1: {
     marginTop: -47,
@@ -384,12 +419,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     flexDirection: "row",
     alignItems: "center",
-    width: "100%"
+    width: "100%",
   },
   navbar: {
     top: 750,
     height: 94,
-    position: "absolute"
+    position: "absolute",
   },
   profile: {
     borderColor: "#aba7af",
@@ -402,11 +437,11 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
     borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0
+    borderBottomRightRadius: 0,
   },
   binGoLogo: {
     width: 28,
-    height: 28
+    height: 28,
   },
   button: {
     borderRadius: 8,
@@ -418,8 +453,8 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     alignItems: "center",
     marginTop: "auto",
-    marginBottom: 10
-  }
+    marginBottom: 10,
+  },
 });
 
-export default Profile; 
+export default Profile;

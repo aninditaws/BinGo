@@ -4,7 +4,7 @@ import apiService from "./services/apiService";
 interface User {
   id: string;
   email: string;
-  email_confirmed_at: string | null;
+  display_name: string;
   created_at: string;
   updated_at: string;
 }
@@ -14,7 +14,12 @@ type AuthContextType = {
   loading: boolean;
   signUp: (
     email: string,
-    password: string
+    password: string,
+    options: {
+      data: {
+        full_name: string;
+      };
+    }
   ) => Promise<{
     error: Error | null;
     data: { user: any } | null;
@@ -68,9 +73,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    options: {
+      data: {
+        full_name: string;
+      };
+    }
+  ) => {
     try {
-      const response = await apiService.signUp(email, password);
+      const response = await apiService.signUp(email, password, options);
 
       if (response.error) {
         return { error: new Error(response.error), data: null };

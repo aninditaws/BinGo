@@ -1,16 +1,26 @@
 const { supabase } = require("../config/supabase");
 
 class AuthService {
-  async signUp(email, password) {
+  async signUp(email, password, options) {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            display_name: options.data.full_name,
+          },
+        },
       });
 
       if (error) {
         throw error;
       }
+
+      await this.upsertUserProfile(data.user.id, {
+        full_name: options.data.full_name,
+        email: email,
+      });
 
       return {
         user: data.user,
@@ -93,6 +103,102 @@ class AuthService {
       };
     } catch (error) {
       console.error("Refresh session service error:", error);
+      throw error;
+    }
+  }
+
+  async createUserProfile(user) {
+    try {
+      const { data, error } = await supabase.from("profiles").insert([
+        {
+          id: user.id,
+          email: user.email,
+          full_name:
+            user.user_metadata.full_name || user.user_metadata.display_name,
+          avatar_url: null,
+          location: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ]);
+
+      if (error) {
+        console.error("Profile creation error:", error);
+        // Don't throw here as auth user was created successfully
+        // Profile creation failure shouldn't block login
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Profile creation service error:", error);
+    }
+  }
+
+  async updateUserProfile(userId, profileData) {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .update({
+          ...profileData,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
+
+      console.log(data, error);
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Profile update service error:", error);
+      throw error;
+    }
+  }
+
+  async getUserProfile(userId) {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Get user profile service error:", error);
+      throw error;
+    }
+  }
+
+  async upsertUserProfile(userId, profileData) {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .upsert(
+          {
+            id: userId,
+            ...profileData,
+            updated_at: new Date().toISOString(),
+          },
+          {
+            onConflict: "id",
+          }
+        )
+        .select();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Profile upsert service error:", error);
       throw error;
     }
   }

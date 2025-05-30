@@ -53,7 +53,11 @@ const Signup = () => {
 
     try {
       setLoading(true);
-      const { error } = await signUp(email, password);
+      const { error } = await signUp(email, password, {
+        data: {
+          full_name: fullName,
+        },
+      });
 
       if (error) {
         let errorMessage =

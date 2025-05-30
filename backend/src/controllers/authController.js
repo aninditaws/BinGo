@@ -25,8 +25,8 @@ class AuthController {
         });
       }
 
-      const { email, password } = req.body;
-      const result = await authService.signUp(email, password);
+      const { email, password, options } = req.body;
+      const result = await authService.signUp(email, password, options);
 
       res.status(201).json({
         message:
@@ -105,6 +105,14 @@ class AuthController {
     try {
       const user = req.user; // from auth middleware
 
+      // Get profile data from profiles table
+      let profile = null;
+      try {
+        profile = await authService.getUserProfile(user.id);
+      } catch (profileError) {
+        console.log("Profile not found, using auth user data only");
+      }
+
       res.status(200).json({
         user: {
           id: user.id,
@@ -112,11 +120,58 @@ class AuthController {
           email_confirmed_at: user.email_confirmed_at,
           created_at: user.created_at,
           updated_at: user.updated_at,
+          // Include metadata
+          full_name:
+            user.user_metadata?.full_name || user.user_metadata?.display_name,
+          display_name: user.user_metadata?.display_name,
+          first_name: user.user_metadata?.first_name,
+          last_name: user.user_metadata?.last_name,
         },
+        profile: profile || null,
       });
     } catch (error) {
       console.error("Get profile controller error:", error);
       res.status(500).json({ error: "Failed to get user profile." });
+    }
+  }
+
+  async updateProfile(req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          error: "Validation failed",
+          details: errors.array(),
+        });
+      }
+
+      const userId = req.user.id;
+      const {
+        full_name,
+        display_name,
+        first_name,
+        last_name,
+        location,
+        avatar_url,
+      } = req.body;
+
+      // Update profile in profiles table
+      const updatedProfile = await authService.updateUserProfile(userId, {
+        full_name,
+        display_name,
+        first_name,
+        last_name,
+        location,
+        avatar_url,
+      });
+
+      res.status(200).json({
+        message: "Profile updated successfully",
+        profile: updatedProfile,
+      });
+    } catch (error) {
+      console.error("Update profile controller error:", error);
+      res.status(500).json({ error: "Failed to update profile." });
     }
   }
 

@@ -9,14 +9,15 @@ import HomeIcon from "../assets/icons/house-dark.svg"
 import SearchIcon from "../assets/icons/search-light.svg"
 import UserNavbar from "../assets/icons/user-light.svg"
 import { useRouter } from "expo-router";
+import { useAuth } from "../lib/AuthContext";
 
 const Home = () => {
   const router = useRouter();
   const { height: screenHeight } = Dimensions.get('window');
-
+  const { user } = useAuth();
   // Dynamic positioning to fix layout issues
   const { width: screenWidth } = Dimensions.get('window');
-  
+
   const dynamicStyles = StyleSheet.create({
     navbar: {
       ...styles.navbar,
@@ -54,7 +55,7 @@ const Home = () => {
             </View>
             <View style={styles.haloParent}>
               <Text style={styles.halo}>Halo,</Text>
-              <Text style={styles.name}>Jason Jahja</Text>
+              <Text style={styles.name}>{user?.display_name || "User"}</Text>
             </View>
           </Pressable>
           <View style={styles.mapPinParent}>

@@ -10,7 +10,7 @@ const getApiBaseUrl = (): string => {
 
     // STEP 2: Replace localhost with your IP address
     // Example: return 'http://192.168.1.100:3001/api';
-    return "http://192.168.10.175:3001/api";
+    return "http://172.16.0.247:3001/api";
 
     // For Android emulator, use this special IP:
     return "http://10.0.2.2:3001/api";
@@ -119,10 +119,20 @@ class ApiService {
     }
   }
 
-  async signUp(email: string, password: string): Promise<ApiResponse> {
+  async signUp(
+    email: string,
+    password: string,
+    options: {
+      data: { full_name: string };
+    }
+  ): Promise<ApiResponse> {
     const response = await this.makeRequest("/auth/signup", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({
+        email,
+        password,
+        options,
+      }),
     });
 
     if (response.data?.session) {
@@ -192,6 +202,10 @@ class ApiService {
     // Try to get profile to verify token validity
     const response = await this.getProfile();
     return !response.error;
+  }
+
+  async getUserProfile(id: string): Promise<ApiResponse> {
+    return this.makeRequest(`/auth/profile/${id}`);
   }
 }
 
