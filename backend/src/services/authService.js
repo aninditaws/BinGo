@@ -1,4 +1,4 @@
-const { supabase } = require("../config/supabase");
+const { supabase, supabaseAdmin } = require("../config/supabase");
 
 class AuthService {
   async signUp(email, password, options) {
@@ -9,6 +9,7 @@ class AuthService {
         options: {
           data: {
             display_name: options.data.full_name,
+            full_name: options.data.full_name,
           },
         },
       });
@@ -19,6 +20,7 @@ class AuthService {
 
       await this.upsertUserProfile(data.user.id, {
         full_name: options.data.full_name,
+        display_name: options.data.full_name,
         email: email,
       });
 
@@ -142,9 +144,9 @@ class AuthService {
           ...profileData,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", userId);
-
-      console.log(data, error);
+        .eq("id", userId)
+        .select()
+        .single();
 
       if (error) {
         throw error;
@@ -178,19 +180,63 @@ class AuthService {
 
   async upsertUserProfile(userId, profileData) {
     try {
+      const profileRecord = {
+        id: userId,
+        ...profileData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
       const { data, error } = await supabase
         .from("profiles")
-        .upsert(
-          {
-            id: userId,
-            ...profileData,
-            updated_at: new Date().toISOString(),
-          },
-          {
-            onConflict: "id",
-          }
-        )
-        .select();
+        .upsert(profileRecord, {
+          onConflict: "id",
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Upsert profile error:", error);
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Profile upsert service error:", error);
+      throw error;
+    }
+  }
+
+  async getUserLocation(userId) {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("location")
+        .eq("id", userId)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data?.location;
+    } catch (error) {
+      console.error("Get user location service error:", error);
+      throw error;
+    }
+  }
+
+  async updateUserLocation(userId, location) {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .update({
+          location: location,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId)
+        .select("location")
+        .single();
 
       if (error) {
         throw error;
@@ -198,7 +244,30 @@ class AuthService {
 
       return data;
     } catch (error) {
-      console.error("Profile upsert service error:", error);
+      console.error("Update user location service error:", error);
+      throw error;
+    }
+  }
+
+  async updateUserMetadata(userId, metadata) {
+    try {
+      const { data, error } = await supabaseAdmin.auth.admin.updateUserById(
+        userId,
+        {
+          user_metadata: {
+            ...metadata,
+          },
+        }
+      );
+
+      if (error) {
+        console.error("Update user metadata error:", error);
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Update user metadata service error:", error);
       throw error;
     }
   }

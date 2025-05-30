@@ -8,6 +8,9 @@ import {
   Image,
   Dimensions,
   Platform,
+  TextInput,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import ChevronRight from "../assets/icons/chevron-right.svg";
 import User from "../assets/icons/user-pink.svg";
@@ -19,10 +22,88 @@ import HomeIcon from "../assets/icons/house-light.svg";
 import SearchIcon from "../assets/icons/search-light.svg";
 import UserNavbar from "../assets/icons/user-dark.svg";
 import { useRouter } from "expo-router";
+import { useAuth } from "@/lib/AuthContext";
 
 const Profile = () => {
   const router = useRouter();
   const { height: screenHeight } = Dimensions.get("window");
+  const { user, profile, updateProfile, refreshProfile } = useAuth();
+
+  // Form state - initialize with any available data
+  const [fullName, setFullName] = React.useState(
+    profile?.full_name || user?.display_name || ""
+  );
+  const [email, setEmail] = React.useState(user?.email || "");
+  const [location, setLocation] = React.useState(profile?.location || "");
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [isSaving, setIsSaving] = React.useState(false);
+
+  // Initialize form with existing data immediately
+  React.useEffect(() => {
+    if (user) {
+      setEmail(user.email || "");
+      // Only set fullName from user if we don't have profile data
+      if (!profile?.full_name) {
+        setFullName(user.display_name || "");
+      }
+    }
+
+    if (profile) {
+      setFullName(profile.full_name || user?.display_name || "");
+      setLocation(profile.location || "");
+    }
+  }, [user, profile]);
+
+  // Load initial data and refresh profile
+  React.useEffect(() => {
+    const loadProfileData = async () => {
+      // Only show loading if we don't have basic user data
+      if (!user) {
+        setIsLoading(true);
+      }
+
+      try {
+        await refreshProfile();
+
+        // If profile is still null after first attempt, try once more after a short delay
+        setTimeout(async () => {
+          if (!profile) {
+            console.log("Profile still null, retrying...");
+            await refreshProfile();
+          }
+        }, 1000);
+      } catch (error) {
+        console.error("Error loading profile:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProfileData();
+  }, []); // Remove refreshProfile dependency to avoid infinite re-renders
+
+  const handleSave = async () => {
+    if (isSaving) return;
+
+    setIsSaving(true);
+    try {
+      const result = await updateProfile({
+        full_name: fullName.trim(),
+        location: location.trim(),
+      });
+
+      if (result.error) {
+        Alert.alert("Error", result.error.message);
+      } else {
+        Alert.alert("Success", "Profile updated successfully!");
+      }
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      Alert.alert("Error", "Failed to save profile. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // Dynamic positioning to fix layout issues
   const { width: screenWidth } = Dimensions.get("window");
@@ -55,6 +136,15 @@ const Profile = () => {
     },
   });
 
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#5b913b" />
+        <Text style={styles.loadingText}>Loading profile...</Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView style={styles.profile}>
       <View style={dynamicStyles.frameParent}>
@@ -83,11 +173,14 @@ const Profile = () => {
                 <Text style={[styles.nama, styles.namaTypo]}>Nama</Text>
               </View>
               <View style={[styles.inputdropdown, styles.borderBorder]}>
-                <View style={styles.inputdropdownTxt}>
-                  <Text style={[styles.text, styles.namaTypo]}>
-                    Jason Jahja
-                  </Text>
-                </View>
+                <TextInput
+                  style={[styles.textInput, styles.namaTypo]}
+                  value={fullName}
+                  onChangeText={setFullName}
+                  placeholder="Enter your full name"
+                  placeholderTextColor="#999"
+                  editable={!isSaving}
+                />
               </View>
             </View>
             <View style={styles.frameParent1}>
@@ -95,12 +188,24 @@ const Profile = () => {
                 <Mail style={styles.icon} width={18} height={18} />
                 <Text style={[styles.nama, styles.namaTypo]}>Email</Text>
               </View>
-              <View style={[styles.inputdropdown, styles.borderBorder]}>
-                <View style={styles.inputdropdownTxt}>
-                  <Text style={[styles.text, styles.namaTypo]}>
-                    jasonjahja123@gmail.com
-                  </Text>
-                </View>
+              <View
+                style={[
+                  styles.inputdropdown,
+                  styles.borderBorder,
+                  styles.disabledInput,
+                ]}
+              >
+                <TextInput
+                  style={[
+                    styles.textInput,
+                    styles.namaTypo,
+                    styles.disabledText,
+                  ]}
+                  value={email}
+                  placeholder="Email address"
+                  placeholderTextColor="#999"
+                  editable={false}
+                />
               </View>
             </View>
             <View style={styles.frameParent1}>
@@ -109,14 +214,27 @@ const Profile = () => {
                 <Text style={[styles.nama, styles.namaTypo]}>Lokasi</Text>
               </View>
               <View style={[styles.inputdropdown, styles.borderBorder]}>
-                <View style={styles.inputdropdownTxt}>
-                  <Text style={[styles.text, styles.namaTypo]}>KOICA</Text>
-                </View>
+                <TextInput
+                  style={[styles.textInput, styles.namaTypo]}
+                  value={location}
+                  onChangeText={setLocation}
+                  placeholder="Enter your location"
+                  placeholderTextColor="#999"
+                  editable={!isSaving}
+                />
               </View>
             </View>
           </View>
-          <Pressable style={styles.button} onPress={() => {}}>
-            <Text style={[styles.button1, styles.text3Clr]}>Simpan</Text>
+          <Pressable
+            style={[styles.button, isSaving && styles.buttonDisabled]}
+            onPress={handleSave}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <ActivityIndicator size="small" color="#fcfdfb" />
+            ) : (
+              <Text style={[styles.button1, styles.text3Clr]}>Simpan</Text>
+            )}
           </Pressable>
         </View>
       </View>
@@ -445,7 +563,7 @@ const styles = StyleSheet.create({
   },
   button: {
     borderRadius: 8,
-    backgroundColor: "#d4d2d5",
+    backgroundColor: "#5b913b",
     justifyContent: "center",
     paddingHorizontal: 52,
     paddingVertical: 12,
@@ -454,6 +572,34 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: "auto",
     marginBottom: 10,
+  },
+  buttonDisabled: {
+    backgroundColor: "#ccc",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fcfdfb",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#1e3014",
+    fontFamily: "Poppins-Regular",
+  },
+  textInput: {
+    lineHeight: 20,
+    color: "#1a141f",
+    fontSize: 14,
+    flex: 1,
+    paddingVertical: 0, // Remove default padding to maintain consistent height
+  },
+  disabledInput: {
+    backgroundColor: "#f5f5f5",
+  },
+  disabledText: {
+    color: "#999",
   },
 });
 

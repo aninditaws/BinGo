@@ -50,5 +50,15 @@ router.put(
   authMiddleware,
   authController.updateProfile.bind(authController)
 );
+router.get(
+  "/location",
+  authMiddleware,
+  authController.getLocation.bind(authController)
+);
+router.put(
+  "/location",
+  authMiddleware,
+  authController.updateLocation.bind(authController)
+);
 
 module.exports = router;

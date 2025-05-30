@@ -170,6 +170,31 @@ class ApiService {
     return this.makeRequest("/auth/profile");
   }
 
+  async updateProfile(profileData: {
+    full_name?: string;
+    display_name?: string;
+    first_name?: string;
+    last_name?: string;
+    location?: string;
+    avatar_url?: string;
+  }): Promise<ApiResponse> {
+    return this.makeRequest("/auth/profile", {
+      method: "PUT",
+      body: JSON.stringify(profileData),
+    });
+  }
+
+  async getLocation(): Promise<ApiResponse> {
+    return this.makeRequest("/auth/location");
+  }
+
+  async updateLocation(location: string): Promise<ApiResponse> {
+    return this.makeRequest("/auth/location", {
+      method: "PUT",
+      body: JSON.stringify({ location }),
+    });
+  }
+
   async refreshToken(): Promise<ApiResponse> {
     const refreshToken = await this.getStoredRefreshToken();
 

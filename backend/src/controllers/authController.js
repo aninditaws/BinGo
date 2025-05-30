@@ -110,7 +110,29 @@ class AuthController {
       try {
         profile = await authService.getUserProfile(user.id);
       } catch (profileError) {
-        console.log("Profile not found, using auth user data only");
+        console.log(
+          "Profile not found, creating new profile for user:",
+          user.id
+        );
+
+        // Create profile if it doesn't exist
+        try {
+          const newProfileData = {
+            full_name:
+              user.user_metadata?.full_name || user.user_metadata?.display_name,
+            display_name:
+              user.user_metadata?.full_name || user.user_metadata?.display_name,
+            email: user.email,
+          };
+
+          await authService.upsertUserProfile(user.id, newProfileData);
+
+          // Try to get the profile again
+          profile = await authService.getUserProfile(user.id);
+        } catch (createError) {
+          console.error("Failed to create profile:", createError);
+          // Continue with null profile
+        }
       }
 
       res.status(200).json({
@@ -146,32 +168,105 @@ class AuthController {
       }
 
       const userId = req.user.id;
-      const {
-        full_name,
-        display_name,
-        first_name,
-        last_name,
-        location,
-        avatar_url,
-      } = req.body;
+      const { full_name, first_name, last_name, location, avatar_url } =
+        req.body;
+
+      // Display name automatically follows full name
+      const display_name = full_name;
+
+      // Update user metadata with both full_name and display_name
+      if (full_name) {
+        try {
+          await authService.updateUserMetadata(userId, {
+            display_name: display_name,
+            full_name: full_name,
+          });
+        } catch (metadataError) {
+          console.error("Failed to update user metadata:", metadataError);
+          // Continue with profile update even if metadata update fails
+        }
+      }
 
       // Update profile in profiles table
       const updatedProfile = await authService.updateUserProfile(userId, {
-        full_name,
-        display_name,
+        full_name: full_name,
+        display_name: display_name,
         first_name,
         last_name,
         location,
         avatar_url,
       });
 
+      // Get fresh user and profile data to return
+      const user = req.user;
+      let profile = null;
+      try {
+        profile = await authService.getUserProfile(userId);
+      } catch (profileError) {
+        console.log("Could not fetch updated profile");
+      }
+
       res.status(200).json({
         message: "Profile updated successfully",
-        profile: updatedProfile,
+        user: {
+          id: user.id,
+          email: user.email,
+          email_confirmed_at: user.email_confirmed_at,
+          created_at: user.created_at,
+          updated_at: user.updated_at,
+          full_name: full_name,
+          display_name: display_name,
+          first_name,
+          last_name,
+        },
+        profile: profile,
       });
     } catch (error) {
       console.error("Update profile controller error:", error);
       res.status(500).json({ error: "Failed to update profile." });
+    }
+  }
+
+  async getLocation(req, res) {
+    try {
+      const userId = req.user.id;
+      const location = await authService.getUserLocation(userId);
+
+      res.status(200).json({
+        location: location || null,
+      });
+    } catch (error) {
+      console.error("Get location controller error:", error);
+      res.status(500).json({ error: "Failed to get user location." });
+    }
+  }
+
+  async updateLocation(req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          error: "Validation failed",
+          details: errors.array(),
+        });
+      }
+
+      const userId = req.user.id;
+      const { location } = req.body;
+
+      // Update location in profiles table
+      const updatedProfile = await authService.updateUserLocation(
+        userId,
+        location
+      );
+
+      res.status(200).json({
+        message: "Location updated successfully",
+        location: location,
+      });
+    } catch (error) {
+      console.error("Update location controller error:", error);
+      res.status(500).json({ error: "Failed to update location." });
     }
   }
 
