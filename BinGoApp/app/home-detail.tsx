@@ -50,7 +50,8 @@ const Detail = () => {
   const [binOwner, setBinOwner] = React.useState<UserProfile | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  const { height: screenHeight } = Dimensions.get("window");
+  const [isSavingTitle, setIsSavingTitle] = React.useState(false);
+  const { height: screenHeight, width: screenWidth } = Dimensions.get("window");
 
   // Load bin data on component mount
   React.useEffect(() => {
@@ -103,8 +104,111 @@ const Detail = () => {
     }
   };
 
-  // Dynamic positioning to fix layout issues
-  const { width: screenWidth } = Dimensions.get("window");
+  const handleSaveTitle = async () => {
+    if (!bin || isSavingTitle) return;
+
+    setIsSavingTitle(true);
+    try {
+      const response = await apiService.updateBin(bin.id, {
+        title: binTitle.trim(),
+      });
+
+      if (response.error) {
+        console.error("Error updating bin title:", response.error);
+        // Revert title on error
+        setBinTitle(bin.title);
+      } else if (response.data?.bin) {
+        // Update local bin state with new data
+        setBin(response.data.bin);
+        console.log("Bin title updated successfully");
+      }
+    } catch (error) {
+      console.error("Error saving bin title:", error);
+      // Revert title on error
+      setBinTitle(bin.title);
+    } finally {
+      setIsSavingTitle(false);
+      setIsEditingTitle(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setBinTitle(bin?.title || binTitle);
+    setIsEditingTitle(false);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "full":
+        return Color.errorDanger500; // Red for full
+      case "medium":
+        return "#f59e0b"; // Amber for medium
+      case "empty":
+      default:
+        return Color.approvalApproval700; // Green for empty
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "full":
+        return "Penuh";
+      case "medium":
+        return "Sedang";
+      case "empty":
+      default:
+        return "Kosong";
+    }
+  };
+
+  const getStatusTextColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "full":
+        return "#d51a52"; // Red for full
+      case "medium":
+        return "#f59e0b"; // Amber for medium
+      case "empty":
+      default:
+        return Color.grayscaleBlack; // Black for empty
+    }
+  };
+
+  const getOverallBinStatus = () => {
+    if (!bin) return "empty";
+
+    // Overall status is "full" only if ALL categories are full
+    if (
+      bin.organik_status?.toLowerCase() === "full" &&
+      bin.anorganik_status?.toLowerCase() === "full" &&
+      bin.b3_status?.toLowerCase() === "full"
+    ) {
+      return "full";
+    }
+
+    // If any category has medium, overall is medium
+    if (
+      bin.organik_status?.toLowerCase() === "medium" ||
+      bin.anorganik_status?.toLowerCase() === "medium" ||
+      bin.b3_status?.toLowerCase() === "medium"
+    ) {
+      return "medium";
+    }
+
+    // Otherwise, it's empty
+    return "empty";
+  };
+
+  const getStatusRowBackground = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "full":
+        return "#FEF2F2"; // Light red background for full
+      case "medium":
+        return "#FEF3C7"; // Light amber background for medium
+      case "empty":
+      default:
+        return "transparent"; // No background for empty
+    }
+  };
 
   const dynamicStyles = StyleSheet.create({
     navbar: {
@@ -186,7 +290,7 @@ const Detail = () => {
                   value={binTitle}
                   onChangeText={setBinTitle}
                   autoFocus
-                  onBlur={() => setIsEditingTitle(false)}
+                  onBlur={handleCancelEdit}
                 />
               ) : (
                 <Text style={[styles.tempatSampahKoica, styles.statusClr]}>
@@ -194,13 +298,36 @@ const Detail = () => {
                 </Text>
               )}
             </View>
-            <Pressable onPress={() => setIsEditingTitle(true)}>
-              <Pencil
-                style={[styles.lucidepencilIcon, styles.badgeIconLayout]}
-                width={16}
-                height={16}
-              />
-            </Pressable>
+            {isEditingTitle ? (
+              <View style={styles.editButtonsContainer}>
+                <Pressable
+                  style={[styles.editButton, styles.cancelButton]}
+                  onPress={handleCancelEdit}
+                  disabled={isSavingTitle}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.editButton, styles.saveButton]}
+                  onPress={handleSaveTitle}
+                  disabled={isSavingTitle}
+                >
+                  {isSavingTitle ? (
+                    <ActivityIndicator size="small" color="#fcfdfb" />
+                  ) : (
+                    <Text style={styles.saveButtonText}>Save</Text>
+                  )}
+                </Pressable>
+              </View>
+            ) : (
+              <Pressable onPress={() => setIsEditingTitle(true)}>
+                <Pencil
+                  style={[styles.lucidepencilIcon, styles.badgeIconLayout]}
+                  width={16}
+                  height={16}
+                />
+              </Pressable>
+            )}
           </View>
           <View style={styles.lucidemapPinParent}>
             <MapPin style={styles.lucidemapPinIcon} width={14} height={14} />
@@ -216,22 +343,29 @@ const Detail = () => {
               <View
                 style={[
                   styles.statusDot,
-                  { backgroundColor: Color.errorDanger500 },
+                  { backgroundColor: getStatusColor(getOverallBinStatus()) },
                 ]}
               />
-              <Text style={[styles.penuh, styles.penuhLayout]}>
-                {bin?.status === "full"
-                  ? "Penuh"
-                  : bin?.status === "medium"
-                  ? "Sedang"
-                  : "Kosong"}
+              <Text
+                style={[
+                  styles.penuh,
+                  styles.penuhLayout,
+                  { color: getStatusTextColor(getOverallBinStatus()) },
+                ]}
+              >
+                {getStatusText(getOverallBinStatus())}
               </Text>
             </View>
           </View>
           <View style={styles.frameChild} />
           <View style={styles.statusListContainer}>
             <View
-              style={[styles.statusRow, { backgroundColor: "transparent" }]}
+              style={[
+                styles.statusRow,
+                {
+                  backgroundColor: getStatusRowBackground(bin?.organik_status),
+                },
+              ]}
             >
               <View style={styles.statusLabelContent}>
                 <OrganicOutline
@@ -242,7 +376,7 @@ const Detail = () => {
                 <Text
                   style={[
                     styles.statusLabelText,
-                    { color: Color.grayscaleBlack },
+                    { color: getStatusTextColor(bin?.organik_status) },
                   ]}
                 >
                   Organik
@@ -252,31 +386,36 @@ const Detail = () => {
                 <View
                   style={[
                     styles.statusDot,
-                    { backgroundColor: Color.approvalApproval700 },
+                    { backgroundColor: getStatusColor(bin?.organik_status) },
                   ]}
                 />
                 <Text
                   style={[
                     styles.statusValueText,
-                    { color: Color.grayscaleBlack },
+                    { color: getStatusTextColor(bin?.organik_status) },
                   ]}
                 >
-                  {bin?.organik_status === "full"
-                    ? "Penuh"
-                    : bin?.organik_status === "medium"
-                    ? "Sedang"
-                    : "Kosong"}
+                  {getStatusText(bin?.organik_status)}
                 </Text>
               </View>
             </View>
 
-            <View style={[styles.statusRow, { backgroundColor: "#FEF2F2" }]}>
+            <View
+              style={[
+                styles.statusRow,
+                {
+                  backgroundColor: getStatusRowBackground(
+                    bin?.anorganik_status
+                  ),
+                },
+              ]}
+            >
               <View style={styles.statusLabelContent}>
                 <LabBottlePlastic width={15} height={15} />
                 <Text
                   style={[
                     styles.statusLabelText,
-                    { color: Color.errorDanger500 },
+                    { color: getStatusTextColor(bin?.anorganik_status) },
                   ]}
                 >
                   Anorganik
@@ -286,28 +425,32 @@ const Detail = () => {
                 <View
                   style={[
                     styles.statusDot,
-                    { backgroundColor: Color.errorDanger500 },
+                    { backgroundColor: getStatusColor(bin?.anorganik_status) },
                   ]}
                 />
-                <Text style={[styles.statusValueText, { color: "#d51a52" }]}>
-                  {bin?.anorganik_status === "full"
-                    ? "Penuh"
-                    : bin?.anorganik_status === "medium"
-                    ? "Sedang"
-                    : "Kosong"}
+                <Text
+                  style={[
+                    styles.statusValueText,
+                    { color: getStatusTextColor(bin?.anorganik_status) },
+                  ]}
+                >
+                  {getStatusText(bin?.anorganik_status)}
                 </Text>
               </View>
             </View>
 
             <View
-              style={[styles.statusRow, { backgroundColor: "transparent" }]}
+              style={[
+                styles.statusRow,
+                { backgroundColor: getStatusRowBackground(bin?.b3_status) },
+              ]}
             >
               <View style={styles.statusLabelContent}>
                 <Danger style={styles.makidangerIcon} width={13} height={13} />
                 <Text
                   style={[
                     styles.statusLabelText,
-                    { color: Color.grayscaleBlack },
+                    { color: getStatusTextColor(bin?.b3_status) },
                   ]}
                 >
                   B3
@@ -317,20 +460,16 @@ const Detail = () => {
                 <View
                   style={[
                     styles.statusDot,
-                    { backgroundColor: Color.primaryPrimary500 },
+                    { backgroundColor: getStatusColor(bin?.b3_status) },
                   ]}
                 />
                 <Text
                   style={[
                     styles.statusValueText,
-                    { color: Color.grayscaleBlack },
+                    { color: getStatusTextColor(bin?.b3_status) },
                   ]}
                 >
-                  {bin?.b3_status === "full"
-                    ? "Penuh"
-                    : bin?.b3_status === "medium"
-                    ? "Sedang"
-                    : "Kosong"}
+                  {getStatusText(bin?.b3_status)}
                 </Text>
               </View>
             </View>
@@ -1006,6 +1145,31 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: Gap.gap_sm,
+  },
+  editButtonsContainer: {
+    flexDirection: "row",
+    gap: Gap.gap_sm,
+  },
+  editButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: "#fcfdfb",
+  },
+  cancelButton: {
+    backgroundColor: "#aba7af",
+  },
+  cancelButtonText: {
+    color: "#fcfdfb",
+    fontSize: 16,
+    fontFamily: "Poppins-SemiBold",
+  },
+  saveButton: {
+    backgroundColor: "#5b913b",
+  },
+  saveButtonText: {
+    color: "#fcfdfb",
+    fontSize: 16,
+    fontFamily: "Poppins-SemiBold",
   },
 });
 

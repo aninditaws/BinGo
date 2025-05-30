@@ -88,6 +88,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(response.data.user);
           setProfile(response.data.profile);
           setIsAuthenticated(true);
+        } else if (response.error?.includes("Session expired")) {
+          // Handle session expiry gracefully
+          setUser(null);
+          setProfile(null);
+          setIsAuthenticated(false);
         } else {
           setUser(null);
           setProfile(null);
@@ -107,6 +112,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     }
   };
+
+  // Add periodic session validation
+  useEffect(() => {
+    if (isAuthenticated) {
+      const interval = setInterval(async () => {
+        try {
+          const stillAuthenticated = await apiService.isAuthenticated();
+          if (!stillAuthenticated) {
+            console.log("Session expired, logging out...");
+            await signOut();
+          }
+        } catch (error) {
+          console.error("Session validation error:", error);
+        }
+      }, 5 * 60 * 1000); // Check every 5 minutes
+
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated]);
 
   const signUp = async (
     email: string,

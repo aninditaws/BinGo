@@ -88,24 +88,74 @@ class ApiService {
     }
   }
 
-  private async makeRequest<T = any>(
+  private async makeRequest(
     endpoint: string,
-    options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {
+    options: {
+      method?: string;
+      headers?: Record<string, string>;
+      body?: string;
+    } = {}
+  ): Promise<ApiResponse> {
     try {
       const token = await this.getStoredToken();
-
       const config: RequestInit = {
+        method: options.method || "GET",
         headers: {
           "Content-Type": "application/json",
           ...(token && { Authorization: `Bearer ${token}` }),
           ...options.headers,
         },
-        ...options,
+        ...(options.body && { body: options.body }),
       };
 
       console.log(`Making request to: ${API_BASE_URL}${endpoint}`);
       const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+
+      // Handle token expiry
+      if (
+        response.status === 401 &&
+        token &&
+        endpoint !== "/auth/refresh-token"
+      ) {
+        console.log("Token expired, attempting refresh...");
+        const refreshResult = await this.refreshToken();
+
+        if (!refreshResult.error) {
+          // Retry the original request with new token
+          const newToken = await this.getStoredToken();
+          const retryConfig: RequestInit = {
+            ...config,
+            headers: {
+              ...config.headers,
+              Authorization: `Bearer ${newToken}`,
+            },
+          };
+
+          console.log(`Retrying request to: ${API_BASE_URL}${endpoint}`);
+          const retryResponse = await fetch(
+            `${API_BASE_URL}${endpoint}`,
+            retryConfig
+          );
+
+          if (!retryResponse.ok) {
+            const errorData = await retryResponse
+              .json()
+              .catch(() => ({ error: "Request failed" }));
+            return {
+              error: errorData.error + " " + errorData.details[0].msg,
+            };
+          }
+
+          const data = await retryResponse.json();
+          return { data };
+        } else {
+          // Refresh failed, clear tokens and return error
+          await this.clearStoredTokens();
+          return {
+            error: "Session expired. Please login again.",
+          };
+        }
+      }
 
       if (!response.ok) {
         const errorData = await response
