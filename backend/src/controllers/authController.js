@@ -136,6 +136,32 @@ class AuthController {
     }
   }
 
+  async getProfileById(req, res) {
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        return res.status(400).json({ error: "User ID is required" });
+      }
+
+      // Get profile data from profiles table
+      let profile = null;
+      try {
+        profile = await authService.getUserProfile(id);
+      } catch (profileError) {
+        console.log("Profile not found for user:", id);
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      res.status(200).json({
+        profile: profile,
+      });
+    } catch (error) {
+      console.error("Get profile by ID controller error:", error);
+      res.status(500).json({ error: "Failed to get user profile." });
+    }
+  }
+
   async updateProfile(req, res) {
     try {
       const errors = validationResult(req);

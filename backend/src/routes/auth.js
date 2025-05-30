@@ -45,6 +45,11 @@ router.get(
   authMiddleware,
   authController.getProfile.bind(authController)
 );
+router.get(
+  "/profile/:id",
+  authMiddleware,
+  authController.getProfileById.bind(authController)
+);
 router.put(
   "/profile",
   authMiddleware,

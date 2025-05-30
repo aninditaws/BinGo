@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const authRoutes = require("./auth");
+const binsRoutes = require("./bins");
 
 // Health check endpoint
 router.get("/health", (req, res) => {
@@ -13,5 +14,6 @@ router.get("/health", (req, res) => {
 
 // API routes
 router.use("/auth", authRoutes);
+router.use("/bins", binsRoutes);
 
 module.exports = router;

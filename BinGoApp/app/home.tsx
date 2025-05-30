@@ -8,6 +8,7 @@ import {
   Pressable,
   Dimensions,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import MapPin from "../assets/icons/map-pin-pink.svg";
 import MapPinLight from "../assets/icons/map-pin-gray.svg";
@@ -19,11 +20,63 @@ import SearchIcon from "../assets/icons/search-light.svg";
 import UserNavbar from "../assets/icons/user-light.svg";
 import { useRouter } from "expo-router";
 import { useAuth } from "../lib/AuthContext";
+import apiService, { type Bin } from "../lib/services/apiService";
 
 const Home = () => {
   const router = useRouter();
   const { height: screenHeight } = Dimensions.get("window");
   const { user, profile } = useAuth();
+  const [bins, setBins] = React.useState<Bin[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  // Load user bins on component mount
+  React.useEffect(() => {
+    loadUserBins();
+  }, []);
+
+  
+
+  const loadUserBins = async () => {
+    try {
+      setLoading(true);
+      const response = await apiService.getUserBins();
+
+      if (response.error) {
+        console.error("Error loading bins:", response.error);
+      } else {
+        setBins(response.data?.bins || []);
+      }
+    } catch (error) {
+      console.error("Error loading bins:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "full":
+        return "#dc2626"; // red-600
+      case "medium":
+        return "#f59e0b"; // amber-500
+      case "empty":
+      default:
+        return "#00b998"; // teal-500
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "full":
+        return "Penuh";
+      case "medium":
+        return "Sedang";
+      case "empty":
+      default:
+        return "Kosong";
+    }
+  };
+
   // Dynamic positioning to fix layout issues
   const { width: screenWidth } = Dimensions.get("window");
 
@@ -54,6 +107,44 @@ const Home = () => {
       height: 36,
     },
   });
+
+  const renderBinCard = (bin: Bin) => (
+    <Pressable
+      key={bin.id}
+      style={styles.binCards}
+      onPress={() => router.push(`/home-detail?id=${bin.id}`)}
+    >
+      <View style={[styles.frameGroup, styles.topbarFlexBox]}>
+        <View style={styles.frameWrapper}>
+          <View style={styles.inputdropdownFlexBox}>
+            <Text
+              style={[styles.tempatSampahKoica, styles.pencarianTerakhirTypo]}
+            >
+              {bin.title}
+            </Text>
+            <View style={styles.mapPinParent}>
+              <MapPin style={styles.mapPinIcon} width={10} height={10} />
+              <Text style={[styles.koica, styles.textTypo]}>
+                {bin.location}
+              </Text>
+            </View>
+          </View>
+        </View>
+        <View style={styles.status}>
+          <View style={styles.badge}>
+            <View
+              style={[
+                styles.badge1,
+                styles.badge1Position,
+                { backgroundColor: getStatusColor(bin.status) },
+              ]}
+            />
+          </View>
+          <Text style={styles.kosong}>{getStatusText(bin.status)}</Text>
+        </View>
+      </View>
+    </Pressable>
+  );
 
   return (
     <ScrollView style={[styles.home, styles.homeBorder]}>
@@ -96,105 +187,21 @@ const Home = () => {
             Tempat Sampah Mu!
           </Text>
           <View style={styles.lineParent}>
-            <Pressable
-              style={styles.binCards}
-              onPress={() => router.push("/home-detail")}
-            >
-              <View style={[styles.frameGroup, styles.topbarFlexBox]}>
-                <View style={styles.frameWrapper}>
-                  <View style={styles.inputdropdownFlexBox}>
-                    <Text
-                      style={[
-                        styles.tempatSampahKoica,
-                        styles.pencarianTerakhirTypo,
-                      ]}
-                    >
-                      Tempat Sampah KOICA #1
-                    </Text>
-                    <View style={styles.mapPinParent}>
-                      <MapPin
-                        style={styles.mapPinIcon}
-                        width={10}
-                        height={10}
-                      />
-                      <Text style={[styles.koica, styles.textTypo]}>KOICA</Text>
-                    </View>
-                  </View>
-                </View>
-                <View style={styles.status}>
-                  <View style={styles.badge}>
-                    <View style={[styles.badge1, styles.badge1Position]} />
-                  </View>
-                  <Text style={styles.kosong}>Kosong</Text>
-                </View>
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#5b913b" />
+                <Text style={styles.loadingText}>Loading your bins...</Text>
               </View>
-            </Pressable>
-            <Pressable
-              style={styles.binCards}
-              onPress={() => router.push("/home-detail")}
-            >
-              <View style={[styles.frameGroup, styles.topbarFlexBox]}>
-                <View style={styles.frameWrapper}>
-                  <View style={styles.inputdropdownFlexBox}>
-                    <Text
-                      style={[
-                        styles.tempatSampahKoica,
-                        styles.pencarianTerakhirTypo,
-                      ]}
-                    >
-                      Tempat Sampah KOICA #1
-                    </Text>
-                    <View style={styles.mapPinParent}>
-                      <MapPin
-                        style={styles.mapPinIcon}
-                        width={10}
-                        height={10}
-                      />
-                      <Text style={[styles.koica, styles.textTypo]}>KOICA</Text>
-                    </View>
-                  </View>
-                </View>
-                <View style={styles.status}>
-                  <View style={styles.badge}>
-                    <View style={[styles.badge1, styles.badge1Position]} />
-                  </View>
-                  <Text style={styles.kosong}>Kosong</Text>
-                </View>
+            ) : bins.length > 0 ? (
+              bins.map(renderBinCard)
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No bins found</Text>
+                <Text style={styles.emptySubText}>
+                  Add your first bin to get started!
+                </Text>
               </View>
-            </Pressable>
-            <Pressable
-              style={styles.binCards}
-              onPress={() => router.push("/home-detail")}
-            >
-              <View style={[styles.frameGroup, styles.topbarFlexBox]}>
-                <View style={styles.frameWrapper}>
-                  <View style={styles.inputdropdownFlexBox}>
-                    <Text
-                      style={[
-                        styles.tempatSampahKoica,
-                        styles.pencarianTerakhirTypo,
-                      ]}
-                    >
-                      Tempat Sampah KOICA #1
-                    </Text>
-                    <View style={styles.mapPinParent}>
-                      <MapPin
-                        style={styles.mapPinIcon}
-                        width={10}
-                        height={10}
-                      />
-                      <Text style={[styles.koica, styles.textTypo]}>KOICA</Text>
-                    </View>
-                  </View>
-                </View>
-                <View style={styles.status}>
-                  <View style={styles.badge}>
-                    <View style={[styles.badge1, styles.badge1Position]} />
-                  </View>
-                  <Text style={styles.kosong}>Kosong</Text>
-                </View>
-              </View>
-            </Pressable>
+            )}
           </View>
         </View>
         <View style={styles.bottomSpace}>
@@ -670,6 +677,34 @@ const styles = StyleSheet.create({
   lineParent: {
     gap: 12,
     alignSelf: "stretch",
+  },
+  loadingContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#1e3014",
+    fontFamily: "Poppins-Regular",
+  },
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+  },
+  emptyText: {
+    fontSize: 18,
+    color: "#1e3014",
+    fontFamily: "Poppins-SemiBold",
+    marginBottom: 8,
+  },
+  emptySubText: {
+    fontSize: 14,
+    color: "#aba7af",
+    fontFamily: "Poppins-Regular",
+    textAlign: "center",
   },
 });
 

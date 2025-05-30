@@ -1,28 +1,111 @@
 import * as React from "react";
-import {ScrollView, StyleSheet, Text, View, Pressable, Image, TextInput, Dimensions, Platform} from "react-native";
-import ChevronRight from "../assets/icons/chevron-right.svg"
-import Pencil from "../assets/icons/pencil.svg"
-import MapPin from "../assets/icons/map-pin-gray.svg"
-import OrganicOutline from "../assets/icons/organic-outline.svg"
-import LabBottlePlastic from "../assets/icons/plastic-bottle.svg"
-import Danger from "../assets/icons/danger.svg"
-import Bell from "../assets/icons/bell.svg"
-import Settings from "../assets/icons/settings.svg"
-import HomeIcon from "../assets/icons/house-dark.svg"
-import SearchIcon from "../assets/icons/search-light.svg"
-import UserNavbar from "../assets/icons/user-light.svg"
-import { Gap, Color, FontSize, FontFamily, Border, Padding } from "../GlobalStyles";
-import { useRouter } from "expo-router";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  Pressable,
+  Image,
+  TextInput,
+  Dimensions,
+  Platform,
+  ActivityIndicator,
+} from "react-native";
+import ChevronRight from "../assets/icons/chevron-right.svg";
+import Pencil from "../assets/icons/pencil.svg";
+import MapPin from "../assets/icons/map-pin-gray.svg";
+import OrganicOutline from "../assets/icons/organic-outline.svg";
+import LabBottlePlastic from "../assets/icons/plastic-bottle.svg";
+import Danger from "../assets/icons/danger.svg";
+import Bell from "../assets/icons/bell.svg";
+import Settings from "../assets/icons/settings.svg";
+import HomeIcon from "../assets/icons/house-dark.svg";
+import SearchIcon from "../assets/icons/search-light.svg";
+import UserNavbar from "../assets/icons/user-light.svg";
+import {
+  Gap,
+  Color,
+  FontSize,
+  FontFamily,
+  Border,
+  Padding,
+} from "../GlobalStyles";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import apiService, { type Bin } from "../lib/services/apiService";
+
+interface UserProfile {
+  id: string;
+  full_name: string;
+  email: string;
+  location?: string;
+  avatar_url?: string;
+}
 
 const Detail = () => {
   const router = useRouter();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const [isEditingTitle, setIsEditingTitle] = React.useState(false);
   const [binTitle, setBinTitle] = React.useState("Tempat Sampah KOICA #1");
-  const { height: screenHeight } = Dimensions.get('window');
+  const [bin, setBin] = React.useState<Bin | null>(null);
+  const [binOwner, setBinOwner] = React.useState<UserProfile | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+  const { height: screenHeight } = Dimensions.get("window");
+
+  // Load bin data on component mount
+  React.useEffect(() => {
+    if (id) {
+      loadBinData();
+    } else {
+      setError("No bin ID provided");
+      setLoading(false);
+    }
+  }, [id]);
+
+  const loadBinData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await apiService.getBinById(id!);
+
+      if (response.error) {
+        setError(response.error);
+      } else if (response.data?.bin) {
+        setBin(response.data.bin);
+        setBinTitle(response.data.bin.title);
+
+        // Load bin owner profile
+        if (response.data.bin.user_id) {
+          await loadBinOwner(response.data.bin.user_id);
+        }
+      } else {
+        setError("Bin not found");
+      }
+    } catch (error) {
+      console.error("Error loading bin:", error);
+      setError("Failed to load bin data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadBinOwner = async (userId: string) => {
+    try {
+      const response = await apiService.getUserProfile(userId);
+
+      if (response.error) {
+        console.error("Error loading bin owner:", response.error);
+      } else if (response.data?.profile) {
+        setBinOwner(response.data.profile);
+      }
+    } catch (error) {
+      console.error("Error loading bin owner:", error);
+    }
+  };
 
   // Dynamic positioning to fix layout issues
-  const { width: screenWidth } = Dimensions.get('window');
-  
+  const { width: screenWidth } = Dimensions.get("window");
+
   const dynamicStyles = StyleSheet.create({
     navbar: {
       ...styles.navbar,
@@ -30,26 +113,52 @@ const Detail = () => {
     },
     frameParent: {
       ...styles.frameParent,
-      top: Platform.OS === 'web' ? 145 : 165, // Adjust content position to match even smaller topbar
-      paddingBottom: Platform.OS === 'ios' ? 120 : 100, // Add bottom padding to prevent overlap
+      top: Platform.OS === "web" ? 145 : 165, // Adjust content position to match even smaller topbar
+      paddingBottom: Platform.OS === "ios" ? 120 : 100, // Add bottom padding to prevent overlap
     },
     navbarChild: {
       ...styles.navbarChild,
-      left: Platform.OS === 'web' 
-        ? 43  // Original perfect web positioning
-        : Math.round((screenWidth - 92) / 3) - 40, // Mobile responsive positioning
+      left:
+        Platform.OS === "web"
+          ? 43 // Original perfect web positioning
+          : Math.round((screenWidth - 92) / 3) - 40, // Mobile responsive positioning
     },
     topbar: {
       ...styles.topbar,
-      paddingTop: Platform.OS === 'web' ? 45 : 60, // Further reduced padding for even smaller topbar
-      paddingBottom: Platform.OS === 'web' ? 15 : 20, // Further reduced bottom padding
+      paddingTop: Platform.OS === "web" ? 45 : 60, // Further reduced padding for even smaller topbar
+      paddingBottom: Platform.OS === "web" ? 15 : 20, // Further reduced bottom padding
     },
     logoIcon: {
       width: 36, // Make logo bigger
       height: 36,
-    }
+    },
   });
-  
+
+  // Show loading screen while fetching data
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#5b913b" />
+        <Text style={styles.loadingText}>Loading bin details...</Text>
+      </View>
+    );
+  }
+
+  // Show error screen if something went wrong
+  if (error || !bin) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error || "Bin not found"}</Text>
+        <Pressable style={styles.retryButton} onPress={loadBinData}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </Pressable>
+        <Pressable style={styles.backButton} onPress={() => router.back()}>
+          <Text style={styles.backButtonText}>Go Back</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
   return (
     <ScrollView style={styles.detail}>
       <View style={dynamicStyles.frameParent}>
@@ -57,69 +166,172 @@ const Detail = () => {
           <View style={styles.frameContainer}>
             <View style={styles.lucidechevronRightParent}>
               <Pressable onPress={() => router.back()}>
-                <ChevronRight style={styles.lucidechevronRightIcon} width={24} height={24} />
+                <ChevronRight
+                  style={styles.lucidechevronRightIcon}
+                  width={24}
+                  height={24}
+                />
               </Pressable>
               {isEditingTitle ? (
                 <TextInput
-                  style={[styles.tempatSampahKoica, styles.statusClr, { flex: 1, borderBottomWidth: 1, borderColor: Color.grayscaleBorder }]}
+                  style={[
+                    styles.tempatSampahKoica,
+                    styles.statusClr,
+                    {
+                      flex: 1,
+                      borderBottomWidth: 1,
+                      borderColor: Color.grayscaleBorder,
+                    },
+                  ]}
                   value={binTitle}
                   onChangeText={setBinTitle}
                   autoFocus
                   onBlur={() => setIsEditingTitle(false)}
                 />
               ) : (
-                <Text style={[styles.tempatSampahKoica, styles.statusClr]}>{binTitle}</Text>
+                <Text style={[styles.tempatSampahKoica, styles.statusClr]}>
+                  {bin?.title || binTitle}
+                </Text>
               )}
             </View>
             <Pressable onPress={() => setIsEditingTitle(true)}>
-              <Pencil style={[styles.lucidepencilIcon, styles.badgeIconLayout]} width={16} height={16} />
+              <Pencil
+                style={[styles.lucidepencilIcon, styles.badgeIconLayout]}
+                width={16}
+                height={16}
+              />
             </Pressable>
           </View>
           <View style={styles.lucidemapPinParent}>
             <MapPin style={styles.lucidemapPinIcon} width={14} height={14} />
-            <Text style={[styles.koica, styles.organikLayout]}>KOICA</Text>
+            <Text style={[styles.koica, styles.organikLayout]}>
+              {bin?.location || "KOICA"}
+            </Text>
           </View>
         </View>
         <View style={styles.frameView}>
           <View style={[styles.frameGroup, styles.topbarFlexBox]}>
             <Text style={[styles.status, styles.bingoTypo]}>Status</Text>
             <View style={styles.status1}>
-              <View style={[styles.statusDot, { backgroundColor: Color.errorDanger500 }]} />
-              <Text style={[styles.penuh, styles.penuhLayout]}>Penuh</Text>
+              <View
+                style={[
+                  styles.statusDot,
+                  { backgroundColor: Color.errorDanger500 },
+                ]}
+              />
+              <Text style={[styles.penuh, styles.penuhLayout]}>
+                {bin?.status === "full"
+                  ? "Penuh"
+                  : bin?.status === "medium"
+                  ? "Sedang"
+                  : "Kosong"}
+              </Text>
             </View>
           </View>
           <View style={styles.frameChild} />
           <View style={styles.statusListContainer}>
-            <View style={[styles.statusRow, { backgroundColor: 'transparent' }]}>
+            <View
+              style={[styles.statusRow, { backgroundColor: "transparent" }]}
+            >
               <View style={styles.statusLabelContent}>
-                <OrganicOutline style={styles.mdiorganicOutlineIcon} width={15} height={15} />
-                <Text style={[styles.statusLabelText, { color: Color.grayscaleBlack }]}>Organik</Text>
+                <OrganicOutline
+                  style={styles.mdiorganicOutlineIcon}
+                  width={15}
+                  height={15}
+                />
+                <Text
+                  style={[
+                    styles.statusLabelText,
+                    { color: Color.grayscaleBlack },
+                  ]}
+                >
+                  Organik
+                </Text>
               </View>
               <View style={styles.statusValueContent}>
-                <View style={[styles.statusDot, { backgroundColor: Color.approvalApproval700 }]} />
-                <Text style={[styles.statusValueText, { color: Color.grayscaleBlack }]}>Kosong</Text>
+                <View
+                  style={[
+                    styles.statusDot,
+                    { backgroundColor: Color.approvalApproval700 },
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.statusValueText,
+                    { color: Color.grayscaleBlack },
+                  ]}
+                >
+                  {bin?.organik_status === "full"
+                    ? "Penuh"
+                    : bin?.organik_status === "medium"
+                    ? "Sedang"
+                    : "Kosong"}
+                </Text>
               </View>
             </View>
 
             <View style={[styles.statusRow, { backgroundColor: "#FEF2F2" }]}>
               <View style={styles.statusLabelContent}>
                 <LabBottlePlastic width={15} height={15} />
-                <Text style={[styles.statusLabelText, { color: Color.errorDanger500 }]}>Anorganik</Text>
+                <Text
+                  style={[
+                    styles.statusLabelText,
+                    { color: Color.errorDanger500 },
+                  ]}
+                >
+                  Anorganik
+                </Text>
               </View>
               <View style={styles.statusValueContent}>
-                <View style={[styles.statusDot, { backgroundColor: Color.errorDanger500 }]} />
-                <Text style={[styles.statusValueText, { color: "#d51a52" }]}>Penuh</Text>
+                <View
+                  style={[
+                    styles.statusDot,
+                    { backgroundColor: Color.errorDanger500 },
+                  ]}
+                />
+                <Text style={[styles.statusValueText, { color: "#d51a52" }]}>
+                  {bin?.anorganik_status === "full"
+                    ? "Penuh"
+                    : bin?.anorganik_status === "medium"
+                    ? "Sedang"
+                    : "Kosong"}
+                </Text>
               </View>
             </View>
 
-            <View style={[styles.statusRow, { backgroundColor: 'transparent' }]}>
+            <View
+              style={[styles.statusRow, { backgroundColor: "transparent" }]}
+            >
               <View style={styles.statusLabelContent}>
                 <Danger style={styles.makidangerIcon} width={13} height={13} />
-                <Text style={[styles.statusLabelText, { color: Color.grayscaleBlack }]}>B3</Text>
+                <Text
+                  style={[
+                    styles.statusLabelText,
+                    { color: Color.grayscaleBlack },
+                  ]}
+                >
+                  B3
+                </Text>
               </View>
               <View style={styles.statusValueContent}>
-                <View style={[styles.statusDot, { backgroundColor: Color.primaryPrimary500 }]} />
-                <Text style={[styles.statusValueText, { color: Color.grayscaleBlack }]}>Kosong</Text>
+                <View
+                  style={[
+                    styles.statusDot,
+                    { backgroundColor: Color.primaryPrimary500 },
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.statusValueText,
+                    { color: Color.grayscaleBlack },
+                  ]}
+                >
+                  {bin?.b3_status === "full"
+                    ? "Penuh"
+                    : bin?.b3_status === "medium"
+                    ? "Sedang"
+                    : "Kosong"}
+                </Text>
               </View>
             </View>
           </View>
@@ -127,24 +339,55 @@ const Detail = () => {
         <View style={styles.parentFlexBox}>
           <Text style={[styles.pengurus, styles.bingoTypo]}>Pengurus</Text>
           <View style={styles.userCardsParent}>
-            <View style={styles.userCards}>
-              <View style={[styles.maskGroupParent, styles.textPosition]}>
-                <Image style={styles.avatarImage} resizeMode="cover" source={require("../assets/icons/person.png")} />
-                <Text style={[styles.agusSutyono, styles.organikLayout]}>Agus Sutyono</Text>
+            {binOwner ? (
+              <View style={styles.userCards}>
+                <View style={[styles.maskGroupParent, styles.textPosition]}>
+                  <Image
+                    style={styles.avatarImage}
+                    resizeMode="cover"
+                    source={
+                      binOwner.avatar_url
+                        ? { uri: binOwner.avatar_url }
+                        : require("../assets/icons/person.png")
+                    }
+                  />
+                  <View style={styles.userInfoContainer}>
+                    <Text style={[styles.agusSutyono, styles.organikLayout]}>
+                      {binOwner.full_name || "Unknown User"}
+                    </Text>
+                    {binOwner.location && (
+                      <Text style={[styles.userLocation, styles.organikLayout]}>
+                        {binOwner.location}
+                      </Text>
+                    )}
+                  </View>
+                </View>
               </View>
-            </View>
-            <View style={styles.userCards}>
-              <View style={[styles.maskGroupParent, styles.textPosition]}>
-                <Image style={styles.avatarImage} resizeMode="cover" source={require("../assets/icons/person.png")} />
-                <Text style={[styles.agusSutyono, styles.organikLayout]}>Budi Rahaja</Text>
+            ) : (
+              <View style={styles.userCards}>
+                <View style={[styles.maskGroupParent, styles.textPosition]}>
+                  <View style={styles.avatarPlaceholder}>
+                    <ActivityIndicator size="small" color="#5b913b" />
+                  </View>
+                  <Text style={[styles.agusSutyono, styles.organikLayout]}>
+                    Loading user info...
+                  </Text>
+                </View>
               </View>
-            </View>
+            )}
           </View>
         </View>
       </View>
       <View style={[dynamicStyles.topbar, styles.topbarLayout]}>
-        <Pressable style={styles.brandName} onPress={() => router.push("/home")}>
-          <Image style={dynamicStyles.logoIcon} resizeMode="cover" source={require("../assets/images/icon.png")} />
+        <Pressable
+          style={styles.brandName}
+          onPress={() => router.push("/home")}
+        >
+          <Image
+            style={dynamicStyles.logoIcon}
+            resizeMode="cover"
+            source={require("../assets/images/icon.png")}
+          />
           <Text style={[styles.bingo, styles.bingoTypo]}>BinGo</Text>
         </Pressable>
         <View style={styles.bellParent}>
@@ -159,15 +402,28 @@ const Detail = () => {
       <View style={[dynamicStyles.navbar, styles.topbarLayout]}>
         <View style={[styles.navbar1, styles.textPosition]}>
           <View style={[dynamicStyles.navbarChild, styles.statusBarPosition]} />
-          <Pressable style={styles.lucidehouseParent} onPress={() => router.push("/home")}>
+          <Pressable
+            style={styles.lucidehouseParent}
+            onPress={() => router.push("/home")}
+          >
             <HomeIcon style={styles.lucidehouseIcon} width={36} height={36} />
             <Text style={[styles.beranda, styles.textClr]}>Beranda</Text>
           </Pressable>
-          <Pressable style={[styles.cariParent, styles.parentLayout]} onPress={() => router.push("/search")}>
+          <Pressable
+            style={[styles.cariParent, styles.parentLayout]}
+            onPress={() => router.push("/search")}
+          >
             <Text style={[styles.cari, styles.cariTypo]}>Cari</Text>
-            <SearchIcon style={[styles.lucidesearchIcon, styles.iconPosition]} width={32} height={32} />
+            <SearchIcon
+              style={[styles.lucidesearchIcon, styles.iconPosition]}
+              width={32}
+              height={32}
+            />
           </Pressable>
-          <Pressable style={[styles.lucideuserParent, styles.parentLayout]} onPress={() => router.push("/profile")}>
+          <Pressable
+            style={[styles.lucideuserParent, styles.parentLayout]}
+            onPress={() => router.push("/profile")}
+          >
             <UserNavbar style={[styles.lucideuserIcon, styles.iconLayout]} />
             <Text style={[styles.profil, styles.cariTypo]}>Profil</Text>
           </Pressable>
@@ -182,33 +438,33 @@ const styles = StyleSheet.create({
     gap: Gap.gap_0,
     justifyContent: "space-between",
     alignItems: "center",
-    flexDirection: "row"
+    flexDirection: "row",
   },
   statusClr: {
     color: Color.grayscaleHintText,
-    textAlign: "left"
+    textAlign: "left",
   },
   badgeIconLayout: {
     height: 16,
-    width: 16
+    width: 16,
   },
   organikLayout: {
     lineHeight: 17,
-    fontSize: FontSize.size_sm
+    fontSize: FontSize.size_sm,
   },
   bingoTypo: {
     fontFamily: FontFamily.nunitoSemiBold,
-    fontWeight: "600"
+    fontWeight: "600",
   },
   penuhLayout: {
     lineHeight: 14,
-    fontSize: FontSize.size_xs
+    fontSize: FontSize.size_xs,
   },
   frameBorder: {
     height: 1,
     borderTopWidth: 1,
     borderColor: Color.colorBeige_100,
-    borderStyle: "solid"
+    borderStyle: "solid",
   },
   frameParent3FlexBox: {
     backgroundColor: Color.primaryPrimary000,
@@ -220,7 +476,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     alignSelf: "stretch",
-    width: 243
+    width: 243,
   },
   frameParentFlexBox1: {
     padding: Padding.p_xs,
@@ -232,7 +488,7 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     borderBottomWidth: 2,
     borderColor: Color.colorBeige_100,
-    borderStyle: "solid"
+    borderStyle: "solid",
   },
   frameParent5FlexBox: {
     backgroundColor: Color.tertierTertier000,
@@ -244,12 +500,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     alignSelf: "stretch",
-    width: 243
+    width: 243,
   },
   penuh1Typo: {
     color: Color.errorDanger500,
     fontFamily: FontFamily.poppinsRegular,
-    textAlign: "left"
+    textAlign: "left",
   },
   frameParent7FlexBox: {
     backgroundColor: "rgba(241, 179, 197, 0.5)",
@@ -261,52 +517,52 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     alignSelf: "stretch",
-    width: 243
+    width: 243,
   },
   parentFlexBox: {
     gap: Gap.gap_lg,
-    alignSelf: "stretch"
+    alignSelf: "stretch",
   },
   frameParentFlexBox: {
     paddingVertical: Padding.p_5xs,
     alignItems: "center",
-    flexDirection: "row"
+    flexDirection: "row",
   },
   bingoClr: {
     color: Color.primaryPrimary500,
-    textAlign: "left"
+    textAlign: "left",
   },
   penuh3Typo: {
     color: Color.tertierTertier500,
     fontFamily: FontFamily.poppinsRegular,
-    textAlign: "left"
+    textAlign: "left",
   },
   textPosition: {
     top: "50%",
-    position: "absolute"
+    position: "absolute",
   },
   topbarLayout: {
     width: "100%",
-    left: 0
+    left: 0,
   },
   statusBarPosition: {
     zIndex: 0,
-    position: "absolute"
+    position: "absolute",
   },
   iconLayout: {
     maxHeight: "100%",
-    position: "absolute"
+    position: "absolute",
   },
   iconPosition: {
-    position: "absolute"
+    position: "absolute",
   },
   textClr: {
-    color: Color.grayscaleWhite
+    color: Color.grayscaleWhite,
   },
   parentLayout: {
     width: 32,
     zIndex: 2,
-    height: 54
+    height: 54,
   },
   cariTypo: {
     top: "74.07%",
@@ -315,72 +571,72 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: Color.grayscaleWhite,
     fontFamily: FontFamily.poppinsRegular,
-    position: "absolute"
+    position: "absolute",
   },
   lucidechevronRightIcon: {
-    overflow: "hidden"
+    overflow: "hidden",
   },
   lucidepencilIcon: {
-    overflow: "hidden"
+    overflow: "hidden",
   },
   lucidemapPinIcon: {
-    overflow: "hidden"
+    overflow: "hidden",
   },
   koica: {
     color: Color.grayscaleBlack,
     textAlign: "justify",
-    fontFamily: FontFamily.poppinsRegular
+    fontFamily: FontFamily.poppinsRegular,
   },
   status: {
     textAlign: "left",
     color: Color.grayscaleBlack,
     lineHeight: 23,
-    fontSize: FontSize.size_lgi
+    fontSize: FontSize.size_lgi,
   },
   status1: {
     gap: Gap.gap_sm,
     alignItems: "center",
-    flexDirection: "row"
+    flexDirection: "row",
   },
   frameChild: {
     width: "100%",
     height: 2,
     borderTopWidth: 2,
     borderColor: Color.colorBeige_100,
-    borderStyle: "solid"
+    borderStyle: "solid",
   },
   mdiorganicOutlineIcon: {
-    overflow: "hidden"
+    overflow: "hidden",
   },
   organik: {
     color: Color.approvalApproval700,
     fontFamily: FontFamily.poppinsRegular,
-    textAlign: "left"
+    textAlign: "left",
   },
   anorganik: {
     color: Color.errorDanger500,
     fontFamily: FontFamily.poppinsRegular,
-    textAlign: "left"
+    textAlign: "left",
   },
   penuh: {
     color: "#d51a52",
     fontFamily: FontFamily.poppinsRegular,
-    textAlign: "left"
+    textAlign: "left",
   },
   penuh1: {
     color: "#d51a52",
     fontFamily: FontFamily.poppinsRegular,
-    textAlign: "left"
+    textAlign: "left",
   },
   penuh3: {
     color: "#d51a52",
     fontFamily: FontFamily.poppinsRegular,
-    textAlign: "left"
+    textAlign: "left",
   },
   kosong2: {
     color: Color.grayscaleBlack,
     fontFamily: FontFamily.poppinsRegular,
-    textAlign: "left"
+    textAlign: "left",
   },
   tempatSampahKoica: {
     fontSize: 14,
@@ -388,23 +644,23 @@ const styles = StyleSheet.create({
     color: Color.grayscaleBlack,
     fontFamily: FontFamily.poppinsRegular,
     textAlign: "left",
-    fontWeight: "600"
+    fontWeight: "600",
   },
   lucidechevronRightParent: {
     gap: Gap.gap_md,
     alignItems: "center",
-    flexDirection: "row"
+    flexDirection: "row",
   },
   lucidemapPinParent: {
     gap: 4,
     flexDirection: "row",
-    alignItems: "center"
+    alignItems: "center",
   },
   topbar: {
     shadowColor: "rgba(0, 0, 0, 0.25)",
     shadowOffset: {
       width: 0,
-      height: 4
+      height: 4,
     },
     shadowRadius: 4,
     elevation: 4,
@@ -419,82 +675,82 @@ const styles = StyleSheet.create({
     backgroundColor: "#fcfdfb",
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center"
+    alignItems: "center",
   },
   statusDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    marginRight: Gap.gap_xs
+    marginRight: Gap.gap_xs,
   },
   frameParent: {
     left: 16,
     right: 16,
     gap: 24,
     position: "absolute",
-    paddingBottom: 110
+    paddingBottom: 110,
   },
   binGoLogo: {
     width: 28,
-    height: 28
+    height: 28,
   },
   bingo: {
     color: "#5b913b",
     fontSize: 22,
     lineHeight: 26,
     fontFamily: "Nunito-SemiBold",
-    fontWeight: "600"
+    fontWeight: "600",
   },
   brandName: {
     alignItems: "center",
     gap: 8,
     flexDirection: "row",
-    flex: 1
+    flex: 1,
   },
   bellIcon: {
-    overflow: "hidden"
+    overflow: "hidden",
   },
   bellParent: {
     gap: 18,
     flexDirection: "row",
-    alignItems: "center"
+    alignItems: "center",
   },
   notificationBadgeText: {
     color: Color.grayscaleWhite,
     fontSize: 10,
     fontFamily: FontFamily.poppinsBold,
-    fontWeight: "700"
+    fontWeight: "700",
   },
   beranda: {
     lineHeight: 14,
     fontSize: FontSize.size_xs,
     fontFamily: FontFamily.poppinsRegular,
     alignSelf: "stretch",
-    color: Color.grayscaleWhite
+    color: Color.grayscaleWhite,
   },
   cari: {
-    left: "11.46%"
+    left: "11.46%",
   },
   profil: {
-    left: "6.25%"
+    left: "6.25%",
   },
   lucidehouseIcon: {
-    overflow: "hidden"
+    overflow: "hidden",
   },
   lucidehouseParent: {
     width: 52,
     zIndex: 1,
     gap: Gap.gap_sm,
-    alignItems: "center"
+    alignItems: "center",
   },
   lucidesearchIcon: {
     top: 0,
-    overflow: "hidden"
+    overflow: "hidden",
   },
   cariParent: {
     width: 32,
     zIndex: 2,
-    height: 54
+    height: 54,
   },
   lucideuserIcon: {
     height: "59.26%",
@@ -505,12 +761,12 @@ const styles = StyleSheet.create({
     maxHeight: "100%",
     overflow: "hidden",
     maxWidth: "100%",
-    width: "100%"
+    width: "100%",
   },
   lucideuserParent: {
     width: 32,
     zIndex: 3,
-    height: 54
+    height: 54,
   },
   navbar1: {
     marginTop: -47,
@@ -523,14 +779,14 @@ const styles = StyleSheet.create({
     gap: Gap.gap_0,
     justifyContent: "space-between",
     alignItems: "center",
-    flexDirection: "row"
+    flexDirection: "row",
   },
   navbar: {
     top: 750,
     height: 94,
     position: "absolute",
     width: "100%",
-    left: 0
+    left: 0,
   },
   detail: {
     borderColor: Color.grayscaleBorder,
@@ -543,7 +799,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: Border.br_xs,
     borderTopRightRadius: Border.br_xs,
     borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0
+    borderBottomRightRadius: 0,
   },
   navbarChild: {
     top: 11,
@@ -552,13 +808,13 @@ const styles = StyleSheet.create({
     width: 92,
     height: 72,
     borderRadius: 12,
-    zIndex: 0
+    zIndex: 0,
   },
   avatarImage: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    marginRight: Gap.gap_sm
+    marginRight: Gap.gap_sm,
   },
   maskGroupParent: {
     marginTop: -25,
@@ -571,41 +827,41 @@ const styles = StyleSheet.create({
     paddingVertical: Padding.p_5xs,
     alignItems: "center",
     flexDirection: "row",
-    backgroundColor: Color.grayscaleWhite
+    backgroundColor: Color.grayscaleWhite,
   },
   userCards: {
     height: 51,
-    width: "100%"
+    width: "100%",
   },
   userCardsParent: {
     gap: Gap.gap_sm,
-    width: "100%"
+    width: "100%",
   },
   pengurus: {
     textAlign: "left",
     color: Color.grayscaleHintText,
     lineHeight: 23,
     fontSize: FontSize.size_lgi,
-    alignSelf: "stretch"
+    alignSelf: "stretch",
   },
   agusSutyono: {
     fontFamily: FontFamily.poppinsRegular,
     textAlign: "left",
-    color: Color.grayscaleHintText
+    color: Color.grayscaleHintText,
   },
   frameGroup: {
-    alignSelf: "stretch"
+    alignSelf: "stretch",
   },
   frameContainer: {
     gap: Gap.gap_md,
     alignItems: "center",
     flexDirection: "row",
     marginTop: -8,
-    marginLeft: -8
+    marginLeft: -8,
   },
   frameView: {
     gap: Gap.gap_md,
-    alignSelf: "stretch"
+    alignSelf: "stretch",
   },
   frameParent3: {
     backgroundColor: "transparent",
@@ -617,10 +873,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     alignSelf: "stretch",
-    width: 243
+    width: 243,
   },
   frameParent4: {
-    backgroundColor: "transparent"
+    backgroundColor: "transparent",
   },
   frameParent5: {
     backgroundColor: "transparent",
@@ -632,7 +888,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     alignSelf: "stretch",
-    width: 243
+    width: 243,
   },
   frameParent7: {
     backgroundColor: "transparent",
@@ -644,44 +900,113 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     alignSelf: "stretch",
-    width: 243
+    width: 243,
   },
   makidangerIcon: {
-    overflow: "hidden"
+    overflow: "hidden",
   },
   statusListContainer: {
-    gap: Gap.gap_sm
+    gap: Gap.gap_sm,
   },
   statusRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 12,
     paddingHorizontal: 8,
     borderRadius: 6,
     marginBottom: 8,
-    width: "100%"
+    width: "100%",
   },
   statusLabelContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Gap.gap_sm
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Gap.gap_sm,
   },
   statusLabelText: {
     lineHeight: 17,
     fontSize: FontSize.size_sm,
-    fontFamily: FontFamily.poppinsRegular
+    fontFamily: FontFamily.poppinsRegular,
   },
   statusValueContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Gap.gap_sm
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Gap.gap_sm,
   },
   statusValueText: {
     lineHeight: 14,
     fontSize: FontSize.size_xs,
-    fontFamily: FontFamily.poppinsRegular
-  }
+    fontFamily: FontFamily.poppinsRegular,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fcfdfb",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#1e3014",
+    fontFamily: "Poppins-Regular",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fcfdfb",
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 18,
+    color: "#dc2626",
+    fontFamily: "Poppins-SemiBold",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: "#5b913b",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  retryButtonText: {
+    color: "#fcfdfb",
+    fontSize: 16,
+    fontFamily: "Poppins-SemiBold",
+  },
+  backButton: {
+    backgroundColor: "#aba7af",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  backButtonText: {
+    color: "#fcfdfb",
+    fontSize: 16,
+    fontFamily: "Poppins-SemiBold",
+  },
+  userInfoContainer: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  userLocation: {
+    fontSize: 12,
+    color: "#aba7af",
+    fontFamily: "Poppins-Regular",
+    textAlign: "left",
+    marginTop: 2,
+  },
+  avatarPlaceholder: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#e5e0eb",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: Gap.gap_sm,
+  },
 });
 
-export default Detail; 
+export default Detail;

@@ -31,6 +31,20 @@ interface ApiResponse<T = any> {
   message?: string;
 }
 
+interface Bin {
+  id: string;
+  title: string;
+  location: string;
+  level_percentage: number;
+  last_updated: string;
+  created_at: string;
+  user_id: string;
+  status: string;
+  organik_status: string;
+  anorganik_status: string;
+  b3_status: string;
+}
+
 class ApiService {
   private async getStoredToken(): Promise<string | null> {
     try {
@@ -234,6 +248,56 @@ class ApiService {
   async getUserProfile(id: string): Promise<ApiResponse> {
     return this.makeRequest(`/auth/profile/${id}`);
   }
+
+  // ========== BINS METHODS ==========
+
+  async getUserBins(): Promise<ApiResponse<{ bins: Bin[] }>> {
+    return this.makeRequest("/bins");
+  }
+
+  async getBinById(binId: string): Promise<ApiResponse<{ bin: Bin }>> {
+    return this.makeRequest(`/bins/${binId}`);
+  }
+
+  async createBin(binData: {
+    title: string;
+    location: string;
+    level_percentage?: number;
+    status?: string;
+    organik_status?: string;
+    anorganik_status?: string;
+    b3_status?: string;
+  }): Promise<ApiResponse<{ bin: Bin }>> {
+    return this.makeRequest("/bins", {
+      method: "POST",
+      body: JSON.stringify(binData),
+    });
+  }
+
+  async updateBin(
+    binId: string,
+    updateData: {
+      title?: string;
+      location?: string;
+      level_percentage?: number;
+      status?: string;
+      organik_status?: string;
+      anorganik_status?: string;
+      b3_status?: string;
+    }
+  ): Promise<ApiResponse<{ bin: Bin }>> {
+    return this.makeRequest(`/bins/${binId}`, {
+      method: "PUT",
+      body: JSON.stringify(updateData),
+    });
+  }
+
+  async deleteBin(binId: string): Promise<ApiResponse> {
+    return this.makeRequest(`/bins/${binId}`, {
+      method: "DELETE",
+    });
+  }
 }
 
+export { type Bin };
 export default new ApiService();
