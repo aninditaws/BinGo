@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { router } from "expo-router";
 import apiService from "./services/apiService";
+import { realtimeService } from "./services/realtimeService";
 
 interface User {
   id: string;
@@ -88,26 +90,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(response.data.user);
           setProfile(response.data.profile);
           setIsAuthenticated(true);
+          // Connect to WebSocket when authenticated
+          await realtimeService.connect();
         } else if (response.error?.includes("Session expired")) {
           // Handle session expiry gracefully
-          setUser(null);
-          setProfile(null);
-          setIsAuthenticated(false);
+          await handleLogout();
         } else {
-          setUser(null);
-          setProfile(null);
-          setIsAuthenticated(false);
+          await handleLogout();
         }
       } else {
-        setUser(null);
-        setProfile(null);
-        setIsAuthenticated(false);
+        await handleLogout();
       }
     } catch (error) {
       console.error("Auth check error:", error);
-      setUser(null);
-      setProfile(null);
-      setIsAuthenticated(false);
+      await handleLogout();
     } finally {
       setLoading(false);
     }
@@ -121,7 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const stillAuthenticated = await apiService.isAuthenticated();
           if (!stillAuthenticated) {
             console.log("Session expired, logging out...");
-            await signOut();
+            await handleLogout();
           }
         } catch (error) {
           console.error("Session validation error:", error);
@@ -131,6 +127,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return () => clearInterval(interval);
     }
   }, [isAuthenticated]);
+
+  const handleLogout = async () => {
+    setUser(null);
+    setProfile(null);
+    setIsAuthenticated(false);
+    // Disconnect WebSocket
+    realtimeService.disconnect();
+    // Navigate to login page
+    router.replace("/login");
+  };
 
   const signUp = async (
     email: string,
@@ -151,6 +157,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (response.data?.user) {
         setUser(response.data.user);
         setIsAuthenticated(true);
+        // Connect to WebSocket after successful signup
+        await realtimeService.connect();
         return { data: { user: response.data.user }, error: null };
       }
 
@@ -172,6 +180,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (response.data?.user) {
         setUser(response.data.user);
         setIsAuthenticated(true);
+        // Connect to WebSocket after successful login
+        await realtimeService.connect();
         return { data: { user: response.data.user }, error: null };
       }
 
@@ -185,13 +195,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       await apiService.signOut();
-      setUser(null);
-      setIsAuthenticated(false);
+      await handleLogout();
     } catch (error) {
       console.error("Error signing out:", error);
-      // Even if the API call fails, we should clear local state
-      setUser(null);
-      setIsAuthenticated(false);
+      // Even if the API call fails, we should still log out
+      await handleLogout();
     }
   };
 
@@ -245,6 +253,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(response.data.profile);
       } else if (response.error) {
         console.error("Profile API error:", response.error);
+        if (response.error.includes("Session expired")) {
+          await handleLogout();
+        }
       }
     } catch (error) {
       console.error("Error refreshing profile:", error);

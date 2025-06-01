@@ -13,6 +13,8 @@ import { Platform, View, StyleSheet } from "react-native";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { AuthProvider } from "@/lib/AuthContext";
+import { NotificationProvider } from "@/lib/NotificationContext";
+import { BinsProvider } from "@/lib/BinsContext";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -51,19 +53,25 @@ export default function RootLayout() {
 
   const content = (
     <AuthProvider>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-          }}
-        >
-          <Stack.Screen name="splash" options={{ headerShown: false }} />
-          <Stack.Screen name="signup" options={{ headerShown: false }} />
-          <Stack.Screen name="login" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
+      <BinsProvider>
+        <NotificationProvider>
+          <ThemeProvider
+            value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+          >
+            <Stack
+              screenOptions={{
+                headerShown: false,
+              }}
+            >
+              <Stack.Screen name="splash" options={{ headerShown: false }} />
+              <Stack.Screen name="signup" options={{ headerShown: false }} />
+              <Stack.Screen name="login" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            </Stack>
+            <StatusBar style="auto" />
+          </ThemeProvider>
+        </NotificationProvider>
+      </BinsProvider>
     </AuthProvider>
   );
 

@@ -18,40 +18,28 @@ import Settings from "../assets/icons/settings.svg";
 import HomeIcon from "../assets/icons/house-dark.svg";
 import SearchIcon from "../assets/icons/search-light.svg";
 import UserNavbar from "../assets/icons/user-light.svg";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { useAuth } from "../lib/AuthContext";
-import apiService, { type Bin } from "../lib/services/apiService";
+import { useBins } from "../lib/BinsContext";
+import { type Bin } from "../lib/services/apiService";
 
 const Home = () => {
   const router = useRouter();
   const { height: screenHeight } = Dimensions.get("window");
   const { user, profile } = useAuth();
-  const [bins, setBins] = React.useState<Bin[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const { bins, loading, error, refreshBins } = useBins();
 
   // Load user bins on component mount
   React.useEffect(() => {
-    loadUserBins();
-  }, []);
+    refreshBins();
+  }, [refreshBins]);
 
-  
-
-  const loadUserBins = async () => {
-    try {
-      setLoading(true);
-      const response = await apiService.getUserBins();
-
-      if (response.error) {
-        console.error("Error loading bins:", response.error);
-      } else {
-        setBins(response.data?.bins || []);
-      }
-    } catch (error) {
-      console.error("Error loading bins:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Refresh bins when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      refreshBins();
+    }, [refreshBins])
+  );
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {

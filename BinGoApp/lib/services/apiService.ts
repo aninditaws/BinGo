@@ -10,7 +10,7 @@ const getApiBaseUrl = (): string => {
 
     // STEP 2: Replace localhost with your IP address
     // Example: return 'http://192.168.1.100:3001/api';
-    return "http://172.16.0.247:3001/api";
+    return "http://10.32.100.135:3001/api";
 
     // For Android emulator, use this special IP:
     return "http://10.0.2.2:3001/api";
