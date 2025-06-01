@@ -21,6 +21,52 @@ class BinsService {
     }
   }
 
+  async getAllBins() {
+    try {
+      const { data, error } = await supabase
+        .from("bins")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Get all bins service error:", error);
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Get all bins service error:", error);
+      throw error;
+    }
+  }
+
+  async searchBins(searchQuery, userId = null) {
+    try {
+      let query = supabase
+        .from("bins")
+        .select("*")
+        .or(`title.ilike.%${searchQuery}%, location.ilike.%${searchQuery}%`)
+        .order("created_at", { ascending: false });
+
+      // If userId is provided, only search user's bins
+      if (userId) {
+        query = query.eq("user_id", userId);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error("Search bins service error:", error);
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Search bins service error:", error);
+      throw error;
+    }
+  }
+
   async getBinById(binId, userId) {
     try {
       const { data, error } = await supabase

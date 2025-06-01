@@ -1,4 +1,4 @@
-const { body, validationResult } = require("express-validator");
+const { body } = require("express-validator");
 const binsService = require("../services/binsService");
 
 // Validation rules
@@ -22,22 +22,44 @@ const updateBinValidation = [
     .withMessage("Level percentage must be between 0 and 100"),
 ];
 
-class BinsController {
-  async getUserBins(req, res) {
+const binsController = {
+  getUserBins: async (req, res) => {
     try {
-      const userId = req.user.id;
-      const bins = await binsService.getUserBins(userId);
-
-      res.status(200).json({
-        bins: bins || [],
-      });
+      const bins = await binsService.getUserBins(req.user.id);
+      res.json({ bins });
     } catch (error) {
-      console.error("Get user bins controller error:", error);
-      res.status(500).json({ error: "Failed to get bins." });
+      console.error("Get user bins error:", error);
+      res.status(500).json({ error: "Failed to get bins" });
     }
-  }
+  },
 
-  async getBinById(req, res) {
+  getAllBins: async (req, res) => {
+    try {
+      const bins = await binsService.getAllBins();
+      res.json({ bins });
+    } catch (error) {
+      console.error("Get all bins error:", error);
+      res.status(500).json({ error: "Failed to get all bins" });
+    }
+  },
+
+  searchBins: async (req, res) => {
+    try {
+      const { query, userBinsOnly } = req.query;
+      if (!query) {
+        return res.status(400).json({ error: "Search query is required" });
+      }
+
+      const userId = userBinsOnly === "true" ? req.user.id : null;
+      const bins = await binsService.searchBins(query, userId);
+      res.json({ bins });
+    } catch (error) {
+      console.error("Search bins error:", error);
+      res.status(500).json({ error: "Failed to search bins" });
+    }
+  },
+
+  getBinById: async (req, res) => {
     try {
       const { id } = req.params;
       const userId = req.user.id;
@@ -55,18 +77,10 @@ class BinsController {
       console.error("Get bin by ID controller error:", error);
       res.status(500).json({ error: "Failed to get bin details." });
     }
-  }
+  },
 
-  async createBin(req, res) {
+  createBin: async (req, res) => {
     try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({
-          error: "Validation failed",
-          details: errors.array(),
-        });
-      }
-
       const userId = req.user.id;
       const {
         title,
@@ -97,18 +111,10 @@ class BinsController {
       console.error("Create bin controller error:", error);
       res.status(500).json({ error: "Failed to create bin." });
     }
-  }
+  },
 
-  async updateBin(req, res) {
+  updateBin: async (req, res) => {
     try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({
-          error: "Validation failed",
-          details: errors.array(),
-        });
-      }
-
       const { id } = req.params;
       const userId = req.user.id;
       const updateData = req.body;
@@ -127,9 +133,9 @@ class BinsController {
       console.error("Update bin controller error:", error);
       res.status(500).json({ error: "Failed to update bin." });
     }
-  }
+  },
 
-  async deleteBin(req, res) {
+  deleteBin: async (req, res) => {
     try {
       const { id } = req.params;
       const userId = req.user.id;
@@ -147,10 +153,8 @@ class BinsController {
       console.error("Delete bin controller error:", error);
       res.status(500).json({ error: "Failed to delete bin." });
     }
-  }
-}
-
-const binsController = new BinsController();
+  },
+};
 
 module.exports = {
   binsController,

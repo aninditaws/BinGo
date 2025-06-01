@@ -9,6 +9,7 @@ import {
   Dimensions,
   Platform,
   ActivityIndicator,
+  TextInput,
 } from "react-native";
 import MapPin from "../assets/icons/map-pin-pink.svg";
 import MapPinLight from "../assets/icons/map-pin-gray.svg";
@@ -27,7 +28,9 @@ const Home = () => {
   const router = useRouter();
   const { height: screenHeight } = Dimensions.get("window");
   const { user, profile } = useAuth();
-  const { bins, loading, error, refreshBins } = useBins();
+  const { bins, loading, error, refreshBins, searchBins } = useBins();
+  const [searchTimeout, setSearchTimeout] =
+    React.useState<NodeJS.Timeout | null>(null);
 
   // Load user bins on component mount
   React.useEffect(() => {
@@ -40,6 +43,24 @@ const Home = () => {
       refreshBins();
     }, [refreshBins])
   );
+
+  const handleSearch = (text: string) => {
+    // Clear existing timeout
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+
+    // Set new timeout for search
+    const timeout = setTimeout(() => {
+      if (text.trim()) {
+        searchBins(text, true); // Search only user's bins
+      } else {
+        refreshBins(); // If search is empty, show all user's bins
+      }
+    }, 500); // 500ms debounce
+
+    setSearchTimeout(timeout);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -160,16 +181,22 @@ const Home = () => {
             </Text>
           </View>
         </View>
-        <View style={[styles.inputdropdown, styles.frameGroupBorder]}>
+        <Pressable
+          style={[styles.inputdropdown, styles.frameGroupBorder]}
+          onPress={() => router.push("/search")}
+        >
           <View style={styles.inputdropdownTxt}>
-            <Text style={[styles.text, styles.textTypo]}>
-              Cari tempat sampah
-            </Text>
+            <TextInput
+              style={[styles.text, styles.textTypo]}
+              placeholder="Cari tempat sampah"
+              placeholderTextColor="#aba7af"
+              onChangeText={handleSearch}
+            />
           </View>
           <View style={styles.inputIcon}>
             <Search style={[styles.searchIcon, styles.iconLayout]} />
           </View>
-        </View>
+        </Pressable>
         <View style={styles.tempatSampahMuParent}>
           <Text style={[styles.tempatSampahMu, styles.bingoTypo]}>
             Tempat Sampah Mu!

@@ -33,7 +33,7 @@ class RealtimeService {
   private getWebSocketUrl(): string {
     if (__DEV__) {
       // Same IP as your API service - update this to match your backend IP
-      return "ws://10.32.100.135:3001/ws";
+      return "ws://192.168.168.155:3001/ws";
     }
     console.log("Production WebSocket URL");
     // Production WebSocket URL

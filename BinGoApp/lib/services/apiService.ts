@@ -10,7 +10,7 @@ const getApiBaseUrl = (): string => {
 
     // STEP 2: Replace localhost with your IP address
     // Example: return 'http://192.168.1.100:3001/api';
-    return "http://10.32.100.135:3001/api";
+    return "http://192.168.168.155:3001/api";
 
     // For Android emulator, use this special IP:
     return "http://10.0.2.2:3001/api";
@@ -303,6 +303,21 @@ class ApiService {
 
   async getUserBins(): Promise<ApiResponse<{ bins: Bin[] }>> {
     return this.makeRequest("/bins");
+  }
+
+  async getAllBins(): Promise<ApiResponse<{ bins: Bin[] }>> {
+    return this.makeRequest("/bins/all");
+  }
+
+  async searchBins(
+    query: string,
+    userBinsOnly: boolean = false
+  ): Promise<ApiResponse<{ bins: Bin[] }>> {
+    return this.makeRequest(
+      `/bins/search?query=${encodeURIComponent(
+        query
+      )}&userBinsOnly=${userBinsOnly}`
+    );
   }
 
   async getBinById(binId: string): Promise<ApiResponse<{ bin: Bin }>> {
