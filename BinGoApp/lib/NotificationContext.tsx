@@ -9,6 +9,7 @@ import React, {
 import { useRealtime } from "./hooks/useRealtime";
 import NotificationPopup from "../components/NotificationPopup";
 import { useBins } from "./BinsContext";
+import NotificationService from "./services/notificationService";
 
 interface NotificationContextType {
   showNotification: (message: string) => void;
@@ -45,6 +46,19 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
   const hideTimer = useRef<NodeJS.Timeout | null>(null);
   const lastNotificationId = useRef<string | null>(null);
 
+  // Initialize push notifications
+  useEffect(() => {
+    const initPushNotifications = async () => {
+      const token = await NotificationService.registerForPushNotifications();
+      if (token) {
+        console.log("Push notification token:", token);
+        // Here you would typically send this token to your backend
+      }
+    };
+
+    initPushNotifications();
+  }, []);
+
   const clearTimers = useCallback(() => {
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
@@ -57,7 +71,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const showNotification = useCallback(
-    (message: string, eventId: string) => {
+    async (message: string, eventId: string) => {
       // If this is the same notification event, don't show it again
       if (lastNotificationId.current === eventId) {
         return;
@@ -80,6 +94,12 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
       setNotification({ message, timestamp, id: eventId });
       setIsVisible(true);
 
+      // Show push notification
+      await NotificationService.scheduleLocalNotification(
+        "BinGo Update",
+        message
+      );
+
       // Set new hide timer
       hideTimer.current = setTimeout(() => {
         setIsVisible(false);
@@ -91,11 +111,11 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   useEffect(() => {
-    const handleBinChange = (message: any) => {
+    const handleBinChange = async (message: any) => {
       const data = message.data;
       if (!data) return;
 
-      const eventId = data.id; // Use the event ID from the WebSocket message
+      const eventId = data.id;
       const operation = data.operation;
       let notificationMessage = "";
 
@@ -114,7 +134,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       // Show notification immediately with the event ID
-      showNotification(notificationMessage, eventId);
+      await showNotification(notificationMessage, eventId);
       // Refresh bins list
       refreshBins();
     };

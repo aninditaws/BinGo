@@ -47,7 +47,7 @@ const wss = new WebSocket.Server({
 
 // Handle WebSocket connections
 wss.on("connection", (ws, req) => {
-  const userId = req.userId || req.url.split('userId=')[1]?.split('&')[0];
+  const userId = req.userId || req.url.split("userId=")[1]?.split("&")[0];
   console.log(`New WebSocket connection for user: ${userId}`);
 
   // Add connection to realtime service
