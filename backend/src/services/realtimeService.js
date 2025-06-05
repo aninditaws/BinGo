@@ -78,8 +78,10 @@ class RealtimeService {
 
   notifyFrontendClients(userId, message) {
     // Get all WebSocket connections for this user
-    const userConnections = this.activeConnections.get(userId) || [];
 
+    const userConnections = Array.from(this.activeConnections.entries())
+      .flatMap(([_, connections]) => connections);
+    
     userConnections.forEach((ws) => {
       if (ws.readyState === 1) {
         // WebSocket.OPEN
