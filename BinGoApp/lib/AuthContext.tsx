@@ -8,6 +8,7 @@ import React, {
 import { router } from "expo-router";
 import apiService from "./services/apiService";
 import { realtimeService } from "./services/realtimeService";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface User {
   id: string;
@@ -187,6 +188,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (response.data?.user) {
         setUser(response.data.user);
         setIsAuthenticated(true);
+        AsyncStorage.setItem("access_token", response.data.session.access_token)
+        AsyncStorage.setItem("user_id", response.data.user.id)
         // Connect to WebSocket after successful login
         await realtimeService.connect();
         return { data: { user: response.data.user }, error: null };

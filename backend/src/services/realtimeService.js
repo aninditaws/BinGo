@@ -14,7 +14,7 @@ class RealtimeService {
       const binsChannel = supabaseAdmin
         .channel("bins_changes", {
           config: {
-            private: false, // Still good practice, service role can access
+            private: true, // Still good practice, service role can access
             broadcast: { self: false }, // Backend doesn't need its own broadcasts
           },
         })

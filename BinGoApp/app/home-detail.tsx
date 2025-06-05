@@ -33,6 +33,7 @@ import {
 import { useRouter, useLocalSearchParams } from "expo-router";
 import apiService, { type Bin } from "../lib/services/apiService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "../lib/AuthContext";
 
 interface UserProfile {
   id: string;
@@ -45,6 +46,7 @@ interface UserProfile {
 const Detail = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { user } = useAuth();
   const [isEditingTitle, setIsEditingTitle] = React.useState(false);
   const [binTitle, setBinTitle] = React.useState("Tempat Sampah KOICA #1");
   const [bin, setBin] = React.useState<Bin | null>(null);
@@ -52,21 +54,7 @@ const Detail = () => {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [isSavingTitle, setIsSavingTitle] = React.useState(false);
-  const [currentUserId, setCurrentUserId] = React.useState<string | null>(null);
   const { height: screenHeight, width: screenWidth } = Dimensions.get("window");
-
-  // Load current user ID on component mount
-  React.useEffect(() => {
-    const loadCurrentUser = async () => {
-      try {
-        const userId = await AsyncStorage.getItem("user_id");
-        setCurrentUserId(userId);
-      } catch (error) {
-        console.error("Error loading current user:", error);
-      }
-    };
-    loadCurrentUser();
-  }, []);
 
   // Load bin data on component mount
   React.useEffect(() => {
@@ -208,7 +196,7 @@ const Detail = () => {
 
   // Add this function to check if current user is the bin owner
   const isBinOwner = () => {
-    return currentUserId && bin?.user_id && currentUserId === bin.user_id;
+    return user?.id && bin?.user_id && user.id === bin.user_id;
   };
 
   const dynamicStyles = StyleSheet.create({

@@ -101,9 +101,7 @@ const NotificationPopup: React.FC<NotificationPopupProps> = ({
           <AntDesign name="bells" size={24} color={Color.primaryPrimary500} />
         </View>
         <View style={styles.messageContainer}>
-          <Text style={styles.message} numberOfLines={2}>
-            {message}
-          </Text>
+          <Text style={styles.message}>{message}</Text>
           <Text style={styles.timestamp}>{timestamp}</Text>
         </View>
         <TouchableOpacity onPress={onClose} style={styles.closeButton}>

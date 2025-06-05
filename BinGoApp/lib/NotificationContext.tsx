@@ -9,7 +9,7 @@ import React, {
 import { useRealtime } from "./hooks/useRealtime";
 import NotificationPopup from "../components/NotificationPopup";
 import { useBins } from "./BinsContext";
-import NotificationService from "./services/notificationService";
+// import NotificationService from "./services/notificationService";
 
 interface NotificationContextType {
   showNotification: (message: string) => void;
@@ -47,17 +47,17 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
   const lastNotificationId = useRef<string | null>(null);
 
   // Initialize push notifications
-  useEffect(() => {
-    const initPushNotifications = async () => {
-      const token = await NotificationService.registerForPushNotifications();
-      if (token) {
-        console.log("Push notification token:", token);
-        // Here you would typically send this token to your backend
-      }
-    };
+  // useEffect(() => {
+  //   const initPushNotifications = async () => {
+  //     const token = await NotificationService.registerForPushNotifications();
+  //     if (token) {
+  //       console.log("Push notification token:", token);
+  //       // Here you would typically send this token to your backend
+  //     }
+  //   };
 
-    initPushNotifications();
-  }, []);
+  //   initPushNotifications();
+  // }, []);
 
   const clearTimers = useCallback(() => {
     if (debounceTimer.current) {
@@ -71,7 +71,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const showNotification = useCallback(
-    async (message: string, eventId: string) => {
+    (message: string, eventId: string) => {
       // If this is the same notification event, don't show it again
       if (lastNotificationId.current === eventId) {
         return;
@@ -95,10 +95,10 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
       setIsVisible(true);
 
       // Show push notification
-      await NotificationService.scheduleLocalNotification(
-        "BinGo Update",
-        message
-      );
+      // await NotificationService.scheduleLocalNotification(
+      //   "BinGo Update",
+      //   message
+      // );
 
       // Set new hide timer
       hideTimer.current = setTimeout(() => {
@@ -111,35 +111,90 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   useEffect(() => {
-    const handleBinChange = async (message: any) => {
+    const handleBinChange = (message: any) => {
       const data = message.data;
       if (!data) return;
 
-      const eventId = data.id;
+      const eventId = data.id; // Unique ID for the event
       const operation = data.operation;
       let notificationMessage = "";
 
       switch (operation) {
         case "INSERT":
-          notificationMessage = `New bin "${data.record.title}" has been created`;
+          notificationMessage = `New bin "${data.record.title}" has been created.`;
           break;
         case "UPDATE":
-          notificationMessage = `Bin "${data.record.title}" has been updated`;
+          const oldRecord = data.old_record;
+          const newRecord = data.record;
+          const changes = [];
+
+          if (oldRecord.title !== newRecord.title) {
+            changes.push(
+              `title changed from "${oldRecord.title}" to "${newRecord.title}"`
+            );
+          }
+          if (oldRecord.status !== newRecord.status) {
+            changes.push(
+              `status changed from ${oldRecord.status} to ${newRecord.status}`
+            );
+          }
+          if (oldRecord.organik_status !== newRecord.organik_status) {
+            changes.push(
+              `organik status changed from ${oldRecord.organik_status} to ${newRecord.organik_status}`
+            );
+          }
+          if (oldRecord.anorganik_status !== newRecord.anorganik_status) {
+            changes.push(
+              `anorganik status changed from ${oldRecord.anorganik_status} to ${newRecord.anorganik_status}`
+            );
+          }
+          if (oldRecord.b3_status !== newRecord.b3_status) {
+            changes.push(
+              `B3 status changed from ${oldRecord.b3_status} to ${newRecord.b3_status}`
+            );
+          }
+          if (oldRecord.location !== newRecord.location) {
+            changes.push(
+              `location changed from "${oldRecord.location}" to "${newRecord.location}"`
+            );
+          }
+          if (oldRecord.level_percentage !== newRecord.level_percentage) {
+            changes.push(
+              `fill level changed from ${oldRecord.level_percentage}% to ${newRecord.level_percentage}%`
+            );
+          }
+
+          if (changes.length > 0) {
+            notificationMessage = `Bin "${
+              newRecord.title
+            }" updated: ${changes.join(", ")}.`;
+          } else {
+            notificationMessage = `Bin "${newRecord.title}" has been updated (no specific field changes detected).`;
+          }
           break;
         case "DELETE":
-          notificationMessage = `Bin has been deleted`;
+          // Make sure to access old_record for delete operations if that's where the title is
+          notificationMessage = `Bin "${
+            data.old_record?.title || "Unknown"
+          }" has been deleted.`;
           break;
         default:
+          console.log("Unknown operation type:", operation);
           return;
       }
 
       // Show notification immediately with the event ID
-      await showNotification(notificationMessage, eventId);
+      showNotification(notificationMessage, eventId);
       // Refresh bins list
       refreshBins();
     };
 
     // Subscribe to bin changes using the correct message type
+    // The WebSocket message type from your backend is 'subscribe_bins'
+    // but the actual data update event seems to be nested.
+    // Let's listen to the event that carries the actual bin data.
+    // Based on your log: 📨 Received WebSocket message: {"data": {...}, "operation": "UPDATE", "type": "subscribe_bins"}
+    // It seems like the "subscribe_bins" type itself is the event.
     on("subscribe_bins", handleBinChange);
 
     return () => {
