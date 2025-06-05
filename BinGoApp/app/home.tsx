@@ -27,15 +27,22 @@ import { type Bin } from "../lib/services/apiService";
 const Home = () => {
   const router = useRouter();
   const { height: screenHeight } = Dimensions.get("window");
-  const { user, profile } = useAuth();
+  const { user, profile, refreshHomeProfile } = useAuth();
   const { bins, loading, error, refreshBins, searchBins } = useBins();
   const [searchTimeout, setSearchTimeout] =
     React.useState<NodeJS.Timeout | null>(null);
 
-  // Load user bins on component mount
+  // Load user profile and bins on component mount
   React.useEffect(() => {
-    refreshBins();
-  }, [refreshBins]);
+    const loadData = async () => {
+      try {
+        await Promise.all([refreshHomeProfile(), refreshBins()]);
+      } catch (error) {
+        console.error("Error loading initial data:", error);
+      }
+    };
+    loadData();
+  }, [refreshHomeProfile, refreshBins]);
 
   // Refresh bins when screen comes into focus
   useFocusEffect(
@@ -164,7 +171,11 @@ const Home = () => {
               <Image
                 style={styles.profileImage}
                 resizeMode="cover"
-                source={require("../assets/icons/person.png")}
+                source={
+                  profile?.avatar_url
+                    ? { uri: profile.avatar_url }
+                    : require("../assets/icons/person.png")
+                }
               />
             </View>
             <View style={styles.haloParent}>

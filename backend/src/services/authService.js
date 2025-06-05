@@ -20,7 +20,6 @@ class AuthService {
 
       await this.upsertUserProfile(data.user.id, {
         full_name: options.data.full_name,
-        display_name: options.data.full_name,
         email: email,
       });
 

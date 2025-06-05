@@ -67,13 +67,12 @@ class BinsService {
     }
   }
 
-  async getBinById(binId, userId) {
+  async getBinById(binId) {
     try {
       const { data, error } = await supabase
         .from("bins")
         .select("*")
         .eq("id", binId)
-        .eq("user_id", userId)
         .single();
 
       if (error) {

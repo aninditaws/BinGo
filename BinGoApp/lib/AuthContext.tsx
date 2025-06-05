@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { router } from "expo-router";
 import apiService from "./services/apiService";
 import { realtimeService } from "./services/realtimeService";
@@ -64,6 +70,7 @@ type AuthContextType = {
     data: any;
   }>;
   refreshProfile: () => Promise<void>;
+  refreshHomeProfile: () => Promise<void>;
   isAuthenticated: boolean;
 };
 
@@ -262,6 +269,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const refreshHomeProfile = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await apiService.getProfile();
+
+      if (response.error) {
+        console.error("Error refreshing home profile:", response.error);
+      } else if (response.data?.profile) {
+        setProfile(response.data.profile);
+      }
+    } catch (error) {
+      console.error("Error refreshing home profile:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const value = {
     user,
     profile,
@@ -272,6 +296,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updateProfile,
     updateLocation,
     refreshProfile,
+    refreshHomeProfile,
     isAuthenticated,
   };
 

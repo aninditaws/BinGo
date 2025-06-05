@@ -62,9 +62,8 @@ const binsController = {
   getBinById: async (req, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.id;
 
-      const bin = await binsService.getBinById(id, userId);
+      const bin = await binsService.getBinById(id);
 
       if (!bin) {
         return res.status(404).json({ error: "Bin not found." });

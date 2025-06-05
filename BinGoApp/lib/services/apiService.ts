@@ -10,13 +10,7 @@ const getApiBaseUrl = (): string => {
 
     // STEP 2: Replace localhost with your IP address
     // Example: return 'http://192.168.1.100:3001/api';
-    return "http://192.168.0.25:3001/api";
-
-    // For Android emulator, use this special IP:
-    return "http://10.0.2.2:3001/api";
-
-    // Current setting (change this to your IP):
-    return "http://localhost:3001/api";
+    return `http://${process.env.EXPO_PUBLIC_IP}:3001/api`;
   }
 
   // Production API URL

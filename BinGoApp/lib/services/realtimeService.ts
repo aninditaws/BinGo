@@ -33,7 +33,7 @@ class RealtimeService {
   private getWebSocketUrl(): string {
     if (__DEV__) {
       // Same IP as your API service - update this to match your backend IP
-      return "ws://192.168.0.25:3001/ws";
+      return `ws://${process.env.EXPO_PUBLIC_IP}:3001/ws`;
     }
     console.log("Production WebSocket URL");
     // Production WebSocket URL
@@ -56,7 +56,7 @@ class RealtimeService {
       const token = await AsyncStorage.getItem("access_token");
       const userId = await AsyncStorage.getItem("user_id");
       if (!token || !userId) {
-        console.error("No authentication token found");
+        console.log("No authentication token found");
         this.isConnecting = false;
         // Navigate to login page if token is not found
         router.replace("/login");
