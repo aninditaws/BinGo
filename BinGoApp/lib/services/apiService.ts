@@ -356,6 +356,14 @@ class ApiService {
       method: "DELETE",
     });
   }
+
+  async getNotifications(binId: string): Promise<ApiResponse> {
+    return this.makeRequest(`/notification/${binId}`)
+  }
+
+  async readNotification(notificationId: string): Promise<ApiResponse> {
+    return this.makeRequest(`/notification/${notificationId}/read`)
+  }
 }
 
 export { type Bin };
